@@ -2,6 +2,8 @@
 velo-deploy
 deploy
 deploy-cli
+/deploy
+/deploy-cli
 
 # IDE
 .idea/

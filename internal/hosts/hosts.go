@@ -6,7 +6,12 @@ import (
 	"strings"
 )
 
-const hostsFile = "/etc/hosts"
+var hostsFile = "/etc/hosts"
+
+// SetHostsFile sets the hosts file path (for testing)
+func SetHostsFile(path string) {
+	hostsFile = path
+}
 
 // AddAlias adds an entry to /etc/hosts for internal service discovery.
 func AddAlias(alias string) error {

@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+var (
+	execCommand = exec.Command
+)
+
 // DetectVersionFromPackageJSON reads package.json and extracts the "engines.node" field.
 // Returns something like "20" or ">=18.0.0".
 func DetectVersionFromPackageJSON(workDir string) (string, error) {
@@ -100,7 +104,7 @@ func EnsureInstalled(nvmDir, version string) error {
 	// Download
 	fmt.Printf("Downloading %s...\n", url)
 	tmpFile := fmt.Sprintf("/tmp/%s", tarName)
-	cmd := exec.Command("curl", "-fsSL", "-o", tmpFile, url)
+	cmd := execCommand("curl", "-fsSL", "-o", tmpFile, url)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
@@ -109,7 +113,7 @@ func EnsureInstalled(nvmDir, version string) error {
 	defer os.Remove(tmpFile)
 
 	// Extract (strip top-level dir)
-	cmd = exec.Command("tar", "-xJf", tmpFile, "--strip-components=1", "-C", destDir)
+	cmd = execCommand("tar", "-xJf", tmpFile, "--strip-components=1", "-C", destDir)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
@@ -117,7 +121,7 @@ func EnsureInstalled(nvmDir, version string) error {
 	}
 
 	// Make world-readable/executable so system users can run node
-	exec.Command("chmod", "-R", "a+rX", destDir).Run()
+	execCommand("chmod", "-R", "a+rX", destDir).Run()
 
 	fmt.Printf("Node.js v%s installed at %s\n", fullVersion, destDir)
 	return nil
@@ -126,7 +130,7 @@ func EnsureInstalled(nvmDir, version string) error {
 // resolveFullVersion resolves a major version like "20" to a full version like "20.19.1"
 // by querying the Node.js dist index.
 func resolveFullVersion(major string) (string, error) {
-	out, err := exec.Command("bash", "-c",
+	out, err := execCommand("bash", "-c",
 		fmt.Sprintf(`curl -fsSL https://nodejs.org/dist/index.json | grep -o '"version":"v%s\.[^"]*"' | head -1 | grep -o '[0-9][^"]*'`, major),
 	).Output()
 	if err != nil || strings.TrimSpace(string(out)) == "" {

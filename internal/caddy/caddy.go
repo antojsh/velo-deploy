@@ -8,7 +8,12 @@ import (
 	"strings"
 )
 
-const confDir = "/etc/caddy/conf.d"
+var confDir = "/etc/caddy/conf.d"
+
+// SetConfDir sets the Caddy config directory (for testing)
+func SetConfDir(path string) {
+	confDir = path
+}
 
 // Route represents a single app routing rule.
 type Route struct {

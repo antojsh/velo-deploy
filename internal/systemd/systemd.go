@@ -10,6 +10,8 @@ import (
 
 const systemdDir = "/etc/systemd/system"
 
+var execCommand = exec.Command
+
 // GenerateService creates a systemd unit file for a Node.js app.
 func GenerateService(appName, nodePath, workDir, entryPoint, username, group string) error {
 	nodeDir := filepath.Dir(nodePath)
@@ -75,13 +77,13 @@ func RestartApp(appName string) error {
 
 // StatusApp returns the output of systemctl status.
 func StatusApp(appName string) (string, error) {
-	out, err := exec.Command("systemctl", "status", fmt.Sprintf("deploy-%s.service", appName)).CombinedOutput()
+	out, err := execCommand("systemctl", "status", fmt.Sprintf("deploy-%s.service", appName)).CombinedOutput()
 	return string(out), err
 }
 
 // IsActive checks if a service is active (running).
 func IsActive(appName string) bool {
-	out, _ := exec.Command("systemctl", "is-active", fmt.Sprintf("deploy-%s.service", appName)).Output()
+	out, _ := execCommand("systemctl", "is-active", fmt.Sprintf("deploy-%s.service", appName)).Output()
 	return strings.TrimSpace(string(out)) == "active"
 }
 
@@ -91,7 +93,7 @@ func ShowLogs(appName string, follow bool) error {
 	if follow {
 		args = append(args, "-f")
 	}
-	cmd := exec.Command(args[0], args[1:]...)
+	cmd := execCommand(args[0], args[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -123,11 +125,19 @@ func ListApps(cfg interface{ Save() error }) {
 
 // CreateUser creates a system user without login.
 func CreateUser(username string) error {
-	// Check if user already exists
-	_, err := exec.Command("id", username).CombinedOutput()
+	_, err := execCommand("id", username).CombinedOutput()
 	if err == nil {
 		return nil // already exists
 	}
+	return runCmd("useradd", "-r", "-s", "/bin/false", username)
+}
+
+func runCmd(name string, args ...string) error {
+	cmd := execCommand(name, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
 	return runCmd("useradd", "-r", "-s", "/bin/false", username)
 }
 
