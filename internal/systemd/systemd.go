@@ -127,17 +127,8 @@ func ListApps(cfg interface{ Save() error }) {
 func CreateUser(username string) error {
 	_, err := execCommand("id", username).CombinedOutput()
 	if err == nil {
-		return nil // already exists
+		return nil
 	}
-	return runCmd("useradd", "-r", "-s", "/bin/false", username)
-}
-
-func runCmd(name string, args ...string) error {
-	cmd := execCommand(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
 	return runCmd("useradd", "-r", "-s", "/bin/false", username)
 }
 
@@ -147,7 +138,7 @@ func RemoveUser(username string) error {
 }
 
 func runCmd(name string, args ...string) error {
-	cmd := exec.Command(name, args...)
+	cmd := execCommand(name, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
