@@ -1,0 +1,86 @@
+name: Tests and Coverage
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Unit Tests with Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests with coverage
+        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
+
+      - name: Check coverage thresholds
+        run: |
+          echo "=== Coverage Report ==="
+          go tool cover -func=coverage.out
+          
+          # Get total coverage
+          TOTAL=$(go tool cover -func=coverage.out | grep "total:" | awk '{print $3}' | tr -d '%')
+          echo "Total coverage: ${TOTAL}%"
+          
+          # Minimum thresholds
+          MIN_CONFIG=80
+          MIN_HOSTS=80
+          MIN_CADDY=80
+          MIN_NODE=70
+          MIN_SYSTEMD=70
+          MIN_DEPLOY=70
+          MIN_TOTAL=75
+          
+          echo ""
+          echo "=== Checking Thresholds ==="
+          
+          # Check per-package coverage
+          for pkg in config hosts caddy node systemd deploy; do
+            COVERAGE=$(go tool cover -func=coverage.out | grep "internal/${pkg}" | awk '{print $3}' | tr -d '%' || echo "0")
+            echo "internal/${pkg}: ${COVERAGE}%"
+          done
+          
+          echo ""
+          echo "Total coverage: ${TOTAL}%"
+          
+          # Fail if total coverage is below threshold
+          if (( $(echo "$TOTAL < $MIN_TOTAL" | bc -l) )); then
+            echo ""
+            echo "ERROR: Total coverage ($TOTAL%) is below minimum threshold ($MIN_TOTAL%)"
+            exit 1
+          fi
+          
+          echo ""
+          echo "✓ All coverage thresholds met!"
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: success()
+        with:
+          files: ./coverage.out
+          flags: unittests
+          name: velo-deploy
+
+      - name: Generate HTML coverage report
+        if: always()
+        run: go tool cover -html=coverage.out -o coverage.html
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.html
