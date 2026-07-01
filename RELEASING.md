@@ -149,9 +149,22 @@ Check the `check` job's output. It reads `.release-please-manifest.json` and com
 
 `release_created` was `true` but the `check` job determined neither package was bumped. This usually means the release-please PR was merged without any conventional commits since the previous release. Revert the merge and verify the commit history since the last tag has `feat:` or `fix:` entries.
 
-### `Error: release-please failed: Invalid previous_tag parameter` on the very first run.
+### `Error: release-please failed: Invalid previous_tag parameter`.
 
-This means there is no `v0.1.0` git tag in the repo yet. release-please's release-notes API call needs a real previous tag. Create it manually (see the "One-time bootstrap" section above) and re-run.
+release-please's release-notes API call requires a git tag whose name matches the configured format. The most common causes are:
+
+- **No previous tag exists.** This happens on a brand-new repo before the bootstrap step. Create the initial `v0.1.0` tag (see the "One-time bootstrap" section above) and re-run.
+- **`include-component-in-tag` was changed mid-flight.** If the flag was flipped (e.g. `false → true` in a later commit) but the existing tags and manifest still use the old format, release-please searches for the new component-prefixed tag (e.g. `velo-deploy-v0.2.0`) and finds nothing. Either revert the flag to match the existing tags, or add the missing component-prefixed tags and update the manifest to match.
+
+To diagnose, compare `git ls-remote --tags` output with the `include-component-in-tag` value in `release-please-config.json` and the package names in the same file.
+
+### `Error: release-please failed: Validation Failed: already_exists` on `field: tag_name`.
+
+release-please found an "in-flight" release PR (one still labelled `autorelease: pending`) and is trying to fulfill it by creating the corresponding release. If the release or the git tag for that version already exists, the API call fails. The PR was likely the historical release PR for an already-shipped version.
+
+To fix, remove the `autorelease: pending` label from the offending release PR (or close it). release-please will then treat it as a settled historical PR and open a fresh release PR for any new conventional commits.
+
+To find the offending PR, look for the `Found pull request #N` line in the failed `Release Please` job log, then check its labels under `https://github.com/<owner>/<repo>/pull/<N>/labels`.
 
 ### `verifying ... checksum mismatch` from `go mod download`.
 
