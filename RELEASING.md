@@ -81,6 +81,33 @@ Or install from a fork:
 VELO_DEPLOY_REPO=myuser/myfork bash install.sh
 ```
 
+## One-time bootstrap (first release)
+
+If this is the first time the pipeline runs against an empty release history, complete these steps manually before pushing:
+
+1. **Fix `go.sum`.** Some upstream Go modules (notably `testify` v1.9.0) have had their `go.mod` re-hashed, which makes `go mod download` fail with `checksum mismatch`. Run locally and commit:
+
+   ```bash
+   go mod tidy
+   git add go.sum go.mod
+   git commit -m "chore: refresh go.sum"
+   ```
+
+   The workflows also run `go mod tidy` defensively, but committing the fix avoids a broken CI on the first push.
+
+2. **Anchor release-please with the initial tag.** release-please needs a real `v0.1.0` git tag to compute the next version. The manifest pins the version but release-please also calls the GitHub API to generate release notes, which requires the tag to exist:
+
+   ```bash
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
+
+   This is a one-time operation. Subsequent releases will tag themselves via the release-please workflow.
+
+3. **Enable GitHub Pages.** The docs workflow deploys to Pages on every push. If Pages is not enabled, the deploy step fails with `404 Not Found`. Enable it at **Settings → Pages → Build and deployment → GitHub Actions** for `https://github.com/<owner>/velo-deploy/settings/pages`.
+
+After these three steps, the pipeline runs end-to-end without manual intervention.
+
 ## Pre-1.0 versioning
 
 This project is pre-1.0 (`bump-minor-pre-major: false`). Conventional commits behave as follows until 1.0.0:
@@ -114,3 +141,21 @@ Check the `check` job's output. It reads `.release-please-manifest.json` and com
 ### The release is created but no binaries are attached.
 
 `release_created` was `true` but the `check` job determined neither package was bumped. This usually means the release-please PR was merged without any conventional commits since the previous release. Revert the merge and verify the commit history since the last tag has `feat:` or `fix:` entries.
+
+### `Error: release-please failed: Invalid previous_tag parameter` on the very first run.
+
+This means there is no `v0.1.0` git tag in the repo yet. release-please's release-notes API call needs a real previous tag. Create it manually (see the "One-time bootstrap" section above) and re-run.
+
+### `verifying ... checksum mismatch` from `go mod download`.
+
+An upstream Go module's `go.mod` was re-hashed. The workflows already run `go mod tidy` to self-heal, but if you need a clean local run:
+
+```bash
+go mod tidy
+```
+
+Commit the updated `go.sum` (and `go.mod` if it changed). The CI workflows will tolerate the mismatch going forward.
+
+### `Creating Pages deployment failed (status: 404)` from `actions/deploy-pages`.
+
+GitHub Pages is not enabled for this repository. Enable it at **Settings → Pages → GitHub Actions**. Once enabled, the docs workflow's deploy job will succeed.

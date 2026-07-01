@@ -48,7 +48,7 @@ jobs:
           cache: true
 
       - name: Download modules
-        run: go mod download
+        run: go mod tidy && go mod download
 
       - name: Run tests
         run: go test ./... -race

@@ -16,6 +16,11 @@ permissions:
   pages: write
   id-token: write
 
+# TODO: bump to Node 24 once Starlight + Astro 5 support it without warnings.
+# For now, opt in to keep using Node 20 (still supported, just deprecated).
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
 concurrency:
   group: docs-${{ github.ref }}
   cancel-in-progress: true

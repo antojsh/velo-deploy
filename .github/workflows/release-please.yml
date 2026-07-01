@@ -9,6 +9,10 @@ permissions:
   pull-requests: write
   id-token: write
 
+# TODO: bump Node version once Starlight + Astro 5 fully support Node 24.
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
 concurrency:
   group: release-please-${{ github.ref }}
   cancel-in-progress: true
@@ -99,7 +103,7 @@ jobs:
           cache: true
 
       - name: Download modules
-        run: go mod download
+        run: go mod tidy && go mod download
 
       - name: Run tests
         run: go test ./... -race
