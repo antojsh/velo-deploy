@@ -1,0 +1,69 @@
+name: Feature request
+description: Propose a new feature or a significant change to existing behavior.
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Please describe the use case and the proposed solution. If you have considered alternatives, include those too.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is the problem or limitation you are running into?
+      placeholder: |
+        I have 5 apps on a single VPS and `velo-deploy list` shows them all in one table. When one of them is in a bad state, I have to scroll or pipe to grep to find it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work?
+      placeholder: |
+        Add a `--filter` flag to `velo-deploy list` that accepts a status, type, or name glob. e.g. `velo-deploy list --filter status=running`.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider? Why is the proposed solution better?
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: |
+        Links, screenshots, or examples. If this is a UX change, mockups are very welcome.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Roughly how big is this change?
+      options:
+        - Small (single file or one command)
+        - Medium (one package or one docs page)
+        - Large (cross-cutting or new subsystem)
+        - Not sure
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Self-check
+      options:
+        - label: I have searched existing issues and discussions for similar ideas
+          required: true
+        - label: I am willing to submit a PR if the approach is approved
+          required: false

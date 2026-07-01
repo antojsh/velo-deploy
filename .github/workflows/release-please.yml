@@ -1,0 +1,64 @@
+name: Release Please
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release Please
+        uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Sign release artifacts
+        if: ${{ steps.release.outputs.release_created }}
+        uses: sigstore/cosign-installer@v3
+
+      - name: Build and attach binaries
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for GOOS in linux; do
+            for GOARCH in amd64; do
+              echo "Building velo-deploy for ${GOOS}/${GOARCH}..."
+              GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 \
+                go build -trimpath -ldflags="-s -w -X main.version=${RELEASE_TAG}" \
+                -o "dist/velo-deploy_${GOOS}_${GOARCH}" \
+                ./cmd/deploy
+            done
+          done
+          # Generate checksums
+          (cd dist && sha256sum *.tar.gz velo-deploy_* > SHA256SUMS) || true
+          echo "Build artifacts:"
+          ls -la dist/
+
+      - name: Upload binaries to release
+        if: ${{ steps.release.outputs.release_created }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag_name }}
+          name: ${{ steps.release.outputs.tag_name }}
+          body: ${{ steps.release.outputs.notes }}
+          files: |
+            dist/velo-deploy_*
+            SHA256SUMS
+          fail_on_unmatched_files: false

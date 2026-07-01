@@ -1,0 +1,164 @@
+---
+title: CLI
+description: Cada comando, flag y ejemplo de la CLI de velo-deploy.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+El binario `velo-deploy` es la interfaz principal. La TUI es una capa fina por encima de estos comandos.
+
+## Flags globales
+
+| Flag | Descripción |
+| --- | --- |
+| `-h`, `--help` | Muestra la ayuda del comando actual. |
+| `-V`, `--version` | Imprime la versión y sale. |
+
+## Comandos
+
+### `velo-deploy deploy`
+
+Clona un repo de Git, instala dependencias, hace build y registra una nueva app.
+
+```bash
+velo-deploy deploy <repo-url> [flags]
+```
+
+| Flag | Default | Descripción |
+| --- | --- | --- |
+| `--name` | derivado del repo | Override del nombre de la app. |
+| `--domain` | _vacío_ | Mapea un dominio real. Dispara Let's Encrypt vía Caddy. |
+| `--alias` | `<name>.local` | Alias local para acceso por path. |
+| `--port` | auto (3000-3999) | Puerto interno de Node.js. Ignorado para sitios estáticos. |
+| `--branch` | default del repo | Branch a trackear. |
+
+**Ejemplos**
+
+```bash
+velo-deploy deploy https://github.com/user/api
+velo-deploy deploy https://github.com/user/api --domain api.example.com
+velo-deploy deploy https://github.com/user/api --alias myapi.local --port 3100
+velo-deploy deploy https://github.com/user/site --name marketing-site
+```
+
+### `velo-deploy add`
+
+Registra una aplicación que ya vive en disco. Útil para repos clonados a mano o para restaurar de un backup.
+
+```bash
+velo-deploy add <name> <path> [flags]
+```
+
+| Flag | Descripción |
+| --- | --- |
+| `--type` | `node` o `static`. Se autodetecta si se omite. |
+| `--domain` | Dominio real a mapear. |
+| `--alias` | Alias local (default `<name>.local`). |
+| `--port` | Puerto de Node.js (rango 3000-3999). |
+
+**Ejemplos**
+
+```bash
+velo-deploy add my-site /opt/deploy/apps/my-site
+velo-deploy add my-site /opt/deploy/apps/my-site --type static
+velo-deploy add my-api  /opt/deploy/apps/my-api  --type node --port 3200
+velo-deploy add my-site /opt/deploy/apps/my-site --domain mysite.com
+```
+
+### `velo-deploy list`
+
+Lista todas las apps registradas con su tipo, dominio, alias y estado.
+
+```bash
+velo-deploy list
+```
+
+Salida:
+
+```text
+NAME          TYPE     DOMAIN              ALIAS                STATUS
+my-api        node     api.example.com     my-api.local         running
+my-site       static   mysite.com          my-site.local        running
+hello-velo    node     -                   hello-velo.local     stopped
+```
+
+### `velo-deploy restart`
+
+Reinicia una app Node.js recargando su unidad systemd. No-op para sitios estáticos (Caddy los sirve directo desde disco).
+
+```bash
+velo-deploy restart <name>
+```
+
+### `velo-deploy stop`
+
+Detiene una app Node.js. La unidad systemd queda instalada; solo se termina el proceso.
+
+```bash
+velo-deploy stop <name>
+```
+
+### `velo-deploy logs`
+
+Muestra las últimas 200 líneas del log de una app, o seguilo en tiempo real.
+
+```bash
+velo-deploy logs <name> [flags]
+```
+
+| Flag | Descripción |
+| --- | --- |
+| `-f`, `--follow` | Sigue la salida (como `tail -f`). |
+| `-n`, `--lines` | Cantidad de líneas a mostrar (default `200`). |
+
+**Ejemplos**
+
+```bash
+velo-deploy logs my-api
+velo-deploy logs my-api -f
+velo-deploy logs my-api -n 1000
+```
+
+### `velo-deploy remove`
+
+Desregistra una app, remueve su unidad systemd y borra su vhost de Caddy. El código fuente bajo `/opt/deploy/apps/<name>` se conserva por default.
+
+```bash
+velo-deploy remove <name> [flags]
+```
+
+| Flag | Descripción |
+| --- | --- |
+| `--purge` | Borra también el directorio de la app. |
+
+### `velo-deploy daemon`
+
+Inicia el daemon de webhooks en foreground. En producción, usá la unidad systemd `velo-watcher` instalada por `install.sh`.
+
+```bash
+velo-deploy daemon --port 9999
+```
+
+<Aside type="note" title="¿Para qué sirve el daemon?">
+	El daemon escucha entregas de webhooks de GitHub y dispara un redeploy cuando llega un push a la branch configurada. Mirá [Webhooks](/velo-deploy/es/guide/webhooks/).
+</Aside>
+
+## Códigos de salida
+
+| Código | Significado |
+| --- | --- |
+| `0` | Éxito. |
+| `1` | Error genérico. Mirá stderr. |
+| `2` | Uso inválido (flag faltante, comando desconocido). |
+| `3` | App no encontrada. |
+| `4` | Permiso denegado. Re-ejecutá con `sudo` o como `root`. |
+| `5` | Puerto ya en uso. |
+
+## Variables de entorno
+
+| Variable | Default | Descripción |
+| --- | --- | --- |
+| `VELO_CONFIG` | `/etc/velo-deploy/config.json` | Override del path del config. |
+| `VELO_LOGS_DIR` | `/var/log/velo-deploy` | Override del directorio de logs. |
+| `VELO_APPS_DIR` | `/opt/deploy/apps` | Override del directorio de apps. |
+| `NO_COLOR` | _unset_ | Deshabilita colores ANSI (también `velo-deploy --no-color`). |

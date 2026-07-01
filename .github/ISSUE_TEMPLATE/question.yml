@@ -1,0 +1,26 @@
+name: Question
+description: Ask a question or open a discussion.
+title: "[Question]: "
+labels: ["question"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for general questions that don't fit the bug or feature templates. For longer discussions, consider [GitHub Discussions](https://github.com/antojsh/velo-deploy/discussions) instead.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Be as specific as possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What have you already tried? What docs have you read?
+    validations:
+      required: false

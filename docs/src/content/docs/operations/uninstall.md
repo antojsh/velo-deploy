@@ -1,0 +1,78 @@
+---
+title: Uninstall
+description: Remove Velo Deploy and every app it manages.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+## Step 1: remove every app
+
+```bash
+velo-deploy list --quiet | xargs -I {} velo-deploy remove {} --purge
+```
+
+This stops every Node.js app, deletes every systemd unit, removes every Caddy vhost, and purges the source code.
+
+## Step 2: stop the watcher
+
+```bash
+sudo systemctl disable --now velo-watcher
+sudo rm /etc/systemd/system/velo-watcher.service
+sudo systemctl daemon-reload
+```
+
+## Step 3: remove the binary
+
+```bash
+sudo rm /usr/local/bin/velo-deploy
+```
+
+## Step 4: remove config and data
+
+```bash
+sudo rm -rf /etc/velo-deploy
+sudo rm -rf /opt/deploy
+sudo rm -rf /var/log/velo-deploy
+```
+
+<Aside type="caution" title="This deletes your app source code">
+	If you have not pushed the source to Git, back up `/opt/deploy/` before running `rm -rf`.
+</Aside>
+
+## Step 5: remove Caddy (optional)
+
+If you no longer need a web server on the box:
+
+```bash
+sudo systemctl disable --now caddy
+sudo apt remove --purge caddy
+sudo rm -rf /etc/caddy
+```
+
+## Step 6: remove nvm (optional)
+
+If you no longer need Node.js on the box:
+
+```bash
+sudo rm -rf /opt/nvm
+```
+
+## One-liner
+
+If you do not need to back anything up:
+
+```bash
+velo-deploy list --quiet | xargs -I {} velo-deploy remove {} --purge
+sudo systemctl disable --now velo-watcher
+sudo rm -f /etc/systemd/system/velo-watcher.service
+sudo systemctl daemon-reload
+sudo rm -f /usr/local/bin/velo-deploy
+sudo rm -rf /etc/velo-deploy /opt/deploy /var/log/velo-deploy
+sudo rm -rf /etc/caddy /opt/nvm
+```
+
+Re-run the install script with the `--dry-run` flag (if you have it) to verify the system is clean:
+
+```bash
+curl -sS https://get.velo-deploy.sh | bash -s -- --check
+```

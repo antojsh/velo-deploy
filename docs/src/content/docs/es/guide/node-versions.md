@@ -1,0 +1,95 @@
+---
+title: Versiones de Node.js
+description: Cómo Velo elige, instala y cambia versiones de Node.js.
+---
+
+Velo Deploy usa [nvm](https://github.com/nvm-sh/nvm) para gestionar Node.js. Las versiones se instalan en `/opt/nvm/versions/node/vX.Y.Z`.
+
+## Versiones soportadas
+
+- Node.js 16 (LTS)
+- Node.js 18 (LTS)
+- Node.js 20 (LTS, **default**)
+- Node.js 22 (LTS)
+
+## Cómo se elige la versión
+
+<Steps>
+
+1. Velo lee el campo `engines.node` del `package.json`.
+2. Se instala la mayor versión soportada que satisfaga el rango (o se reusa si ya está presente).
+3. Si no hay campo `engines`, Velo cae a **Node 20**.
+
+</Steps>
+
+## Ejemplos
+
+```json
+{
+  "engines": { "node": ">=18" }
+}
+```
+
+→ Velo instala Node 20 (la última LTS que satisface `>=18`).
+
+```json
+{
+  "engines": { "node": "20.x" }
+}
+```
+
+→ Velo instala la última Node 20.x.
+
+```json
+{
+  "engines": { "node": ">=22.0.0" }
+}
+```
+
+→ Velo instala Node 22.
+
+## Pinear una versión explícitamente
+
+Usá `nvm` directamente si necesitás un build que aún no está soportado por Velo (por ejemplo, un patch específico o un RC):
+
+```bash
+sudo -u velo-myapp /opt/nvm/nvm-exec nvm install 20.10.0
+sudo -u velo-myapp /opt/nvm/nvm-exec nvm alias default 20.10.0
+```
+
+Después actualizá el `node_path` de la app en `/etc/velo-deploy/config.json`:
+
+```json
+{
+  "apps": {
+    "my-api": {
+      "node_path": "/opt/nvm/versions/node/v20.10.0/bin/node"
+    }
+  }
+}
+```
+
+Y reiniciá la unidad:
+
+```bash
+sudo systemctl restart velo-my-api
+```
+
+## Upgrades cross-major
+
+Cuando bumpeás la mayor versión en `engines.node`, Velo instala la nueva versión en el próximo deploy y actualiza `node_path` automáticamente. La versión vieja queda en disco por si necesitás rollback.
+
+Para remover una versión sin usar:
+
+```bash
+sudo /opt/nvm/nvm-exec nvm uninstall 18.20.0
+```
+
+## npm y corepack
+
+Cada versión de Node.js trae su propio `npm`. Si usás corepack (Yarn, pnpm) y querés pinear una versión, habilitalo dentro del directorio de la app:
+
+```bash
+velo-deploy deploy https://github.com/your/app
+sudo -u velo-yourapp bash -c 'cd /opt/deploy/apps/yourapp && corepack enable'
+```

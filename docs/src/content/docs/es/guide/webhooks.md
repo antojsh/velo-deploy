@@ -1,0 +1,120 @@
+---
+title: Webhooks
+description: Auto-deploy en push a main con webhooks de GitHub.
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+El daemon de webhooks (`velo-watcher`) escucha eventos push en el puerto `9999` y dispara un redeploy de la app que matchea.
+
+## Arquitectura
+
+```
+GitHub ──webhook──▶ velo-watcher (puerto 9999)
+                            │
+                            ▼
+                  git pull → npm ci → npm run build
+                            │
+                            ▼
+                  systemctl restart velo-<app>
+```
+
+## 1. Iniciá el daemon
+
+Si usaste el instalador de una línea, el daemon ya está corriendo bajo systemd:
+
+```bash
+sudo systemctl status velo-watcher
+```
+
+Para iniciarlo a mano (para testing o en un sistema sin systemd):
+
+```bash
+velo-deploy daemon --port 9999
+```
+
+## 2. Configurá el webhook de GitHub
+
+En tu repositorio, andá a **Settings → Webhooks → Add webhook** y completá:
+
+| Campo | Valor |
+| --- | --- |
+| Payload URL | `http://<ip-servidor>:9999/webhook` |
+| Content type | `application/json` |
+| Events | Solo el evento push |
+| SSL verification | Habilitado (recomendado). Deshabilitar solo en entornos de dev con self-signed. |
+
+Si tenés un dominio apuntando al servidor, usá HTTPS:
+
+```
+https://webhook.example.com:9999/webhook
+```
+
+## 3. Configurá la app
+
+Velo matchea los webhooks entrantes con las apps por el **URL del repositorio**. Asegurate de que el `repo_url` en `config.json` coincida con el URL de Git que GitHub envía en el payload.
+
+```json
+{
+  "apps": {
+    "my-api": {
+      "repo_url": "https://github.com/tu-usuario/my-api",
+      "branch": "main"
+    }
+  }
+}
+```
+
+Solo los pushes a `main` o `master` disparan un deploy. Otras branches se ignoran.
+
+## 4. Probalo
+
+Desde tu laptop:
+
+```bash
+curl -X POST http://<ip-servidor>:9999/webhook
+```
+
+Deberías ver una respuesta `200` y, en `journalctl -u velo-watcher -f`, una línea de log sobre el request.
+
+Hacé push de un cambio chico a `main` y mirá cómo aterriza:
+
+```bash
+# En el servidor
+journalctl -u velo-watcher -f
+velo-deploy logs my-api -f
+```
+
+## Seguridad
+
+<Aside type="caution" title="El endpoint del webhook no está autenticado">
+	Por diseño, el daemon acepta cualquier `POST` a `/webhook` que diga venir de un repo conocido. Para producción, poné el daemon detrás de un reverse proxy que:
+	- Restrinja las IPs de origen a los rangos publicados por GitHub: [GitHub webhook IPs](https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries#about-validating-webhook-deliveries).
+	- Verifique el header HMAC `X-Hub-Signature-256` contra tu webhook secret.
+	- Exponga el daemon sobre HTTPS, no HTTP plano.
+</Aside>
+
+### Validar el HMAC
+
+Una versión futura de `velo-watcher` validará el header `X-Hub-Signature-256` out of the box. Hasta entonces, el patrón recomendado es poner Caddy adelante:
+
+```nginx
+webhook.example.com {
+    @github header X-Hub-Signature-256 *
+    handle_response @github {
+        request_body {
+            replace "REPLACE_ME" "computed_hmac"
+        }
+    }
+    reverse_proxy localhost:9999
+}
+```
+
+## Troubleshooting
+
+| Síntoma | Causa probable |
+| --- | --- |
+| `502` desde GitHub | El daemon no está corriendo o el puerto `9999` está bloqueado. |
+| `200` pero no hay redeploy | La branch no es `main`/`master`, o el `repo_url` no matchea. |
+| `Permission denied` en logs | El daemon no está corriendo como `root`. |
+| Deploys lentos | `npm install` está rebuildeando desde cero. Commiteá `package-lock.json` y usá `npm ci`. |

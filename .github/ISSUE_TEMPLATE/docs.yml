@@ -1,0 +1,58 @@
+name: Documentation
+description: Report a problem with the docs or suggest an improvement.
+title: "[Docs]: "
+labels: ["documentation", "needs-triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Docs live in [`docs/`](https://github.com/antojsh/velo-deploy/tree/master/docs) and are deployed to https://antojsh.github.io/velo-deploy/.
+
+  - type: dropdown
+    id: locale
+    attributes:
+      label: Locale
+      options:
+        - English
+        - Español
+
+  - type: input
+    id: url
+    attributes:
+      label: Page URL
+      description: The URL of the page with the issue.
+      placeholder: "https://antojsh.github.io/velo-deploy/guide/webhooks/"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of issue
+      options:
+        - Typo / grammar
+        - Outdated information
+        - Missing information
+        - Broken link
+        - Code example does not work
+        - Translation is wrong or missing
+        - Other (specify below)
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What needs to change and why?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Self-check
+      options:
+        - label: I checked the latest version of the docs
+          required: true
+        - label: I am willing to submit a PR with the fix
+          required: false

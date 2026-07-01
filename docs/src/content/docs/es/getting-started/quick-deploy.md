@@ -1,0 +1,58 @@
+---
+title: Deploy rápido
+description: De un URL de Git a una app corriendo en 30 segundos.
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+La forma más rápida de ver Velo Deploy en acción es desplegar un repositorio de Git público.
+
+<Steps>
+
+1. Asegurate de que tu VPS esté listo. Mirá [Instalación](/velo-deploy/es/getting-started/installation/) si todavía no lo hiciste.
+
+2. Desplegá un repositorio de ejemplo.
+
+	```bash
+	velo-deploy deploy https://github.com/antojsh/velo-deploy-demo
+	```
+
+	La CLI va a:
+
+	- Clonar el repo en `/opt/deploy/apps/velo-deploy-demo`.
+	- Detectar el tipo: Node.js o estático.
+	- Instalar dependencias y correr el script de build.
+	- Registrar una unidad systemd y un vhost de Caddy.
+	- Asignar un alias local al que podés acceder desde el navegador.
+
+3. Abrí el alias en un navegador.
+
+	```bash
+	velo-deploy list
+	```
+
+	La salida muestra el alias (algo como `velo-deploy-demo.local`) y el puerto (algo como `3000`). Agregá el alias al `/etc/hosts` de tu laptop apuntando a la IP del servidor y visitá `http://velo-deploy-demo.local` desde el navegador.
+
+</Steps>
+
+<Aside type="tip" title="¿Querés un URL público?">
+	Pasá `--domain` para mapear un dominio real a la app. Velo va a pedir un certificado de Let's Encrypt a través de Caddy la primera vez que se haga un request al dominio.
+	```bash
+	velo-deploy deploy https://github.com/your/repo --domain demo.example.com
+	```
+</Aside>
+
+## Comandos útiles para seguir
+
+```bash
+velo-deploy list             # ver todas las apps desplegadas
+velo-deploy logs velo-deploy-demo   # últimas 200 líneas
+velo-deploy logs velo-deploy-demo -f   # seguir en vivo
+velo-deploy restart velo-deploy-demo
+velo-deploy remove velo-deploy-demo
+```
+
+## Siguientes pasos
+
+- [Primera app →](/velo-deploy/es/getting-started/first-app/) — Walkthrough completo con un proyecto Node.js propio.
+- [Dominios custom →](/velo-deploy/es/guide/domains/) — Mapeá un dominio real a tu app.

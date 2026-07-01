@@ -1,32 +1,52 @@
 # Velo Deploy
 
-**Bare Metal PaaS** — Deploy Node.js applications and static sites to any VPS without Docker.
+> **Bare Metal PaaS** — Deploy Node.js applications and static sites to any VPS without Docker.
 
 Velo Deploy uses **systemd** for process management and **Caddy** for automatic HTTPS, providing a lightweight, secure alternative to container-based deployments.
 
-```
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go&logoColor=white)](go.mod)
+[![Tests](https://img.shields.io/github/actions/workflow/status/antojsh/velo-deploy/test.yml?branch=master&label=tests)](https://github.com/antojsh/velo-deploy/actions/workflows/test.yml)
+[![Docs](https://img.shields.io/github/actions/workflow/status/antojsh/velo-deploy/docs.yml?branch=master&label=docs)](https://github.com/antojsh/velo-deploy/actions/workflows/docs.yml)
+[![Release](https://img.shields.io/github/v/release/antojsh/velo-deploy)](https://github.com/antojsh/velo-deploy/releases/latest)
+[![Documentation](https://img.shields.io/badge/docs-antojsh.github.io%2Fvelo--deploy-blue)](https://antojsh.github.io/velo-deploy/)
+
+[📖 **Read the documentation**](https://antojsh.github.io/velo-deploy/) · [🇪🇸 **En español**](https://antojsh.github.io/velo-deploy/es/) · [🐛 **Report a bug**](https://github.com/antojsh/velo-deploy/issues/new?template=bug.yml) · [💡 **Request a feature**](https://github.com/antojsh/velo-deploy/issues/new?template=feature.yml)
+
+---
+
+## One-liner install
+
+```bash
 curl -sS https://get.velo-deploy.sh | bash
 ```
 
+Then deploy your first app:
+
+```bash
+velo-deploy deploy https://github.com/antojsh/velo-deploy-demo
+```
+
+**That's it.** Velo clones, builds, and serves the app on a local alias. Point a real domain at it and HTTPS is automatic.
+
 ## Features
 
-- **One-liner Installation** — Get running in seconds
-- **Automatic HTTPS** — Let's Encrypt certificates via Caddy
-- **Node.js + Static Sites** — Deploy APIs and frontend apps
-- **Security Sandboxing** — systemd isolation per app
-- **Auto-Deploy** — GitHub webhooks for continuous deployment
-- **TUI Dashboard** — Terminal-based management interface
-- **CLI Tools** — Full command-line control
-- **Minimal Resources** — No Docker, minimal RAM/CPU footprint
+- ⚡ **One-liner install** — up and running in seconds
+- 🔒 **Automatic HTTPS** — Let's Encrypt via Caddy
+- 🚀 **Node.js + static sites** — APIs, frontends, and pre-rendered assets
+- 🛡️ **Systemd sandboxing** — every app is its own Linux user with a hardened unit
+- 🔁 **GitHub webhooks** — push to `main`, get a redeploy
+- 🖥️ **TUI dashboard** — keyboard-driven, no web UI to maintain
+- 📦 **Single static binary** — no runtime, no Docker, minimal footprint
 
-## Architecture
+## How it works
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Velo Deploy                          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│   GitHub ──webhook──▶ deploy-watcher (port 9999)           │
+│   GitHub ──webhook──▶ velo-watcher (port 9999)             │
 │                              │                              │
 │                              ▼                              │
 │                    ┌─────────────────┐                      │
@@ -39,8 +59,8 @@ curl -sS https://get.velo-deploy.sh | bash
 │              ▼                              ▼              │
 │   ┌─────────────────────┐      ┌─────────────────────┐      │
 │   │   Node.js Apps      │      │   Static Sites      │      │
-│   │   (systemd)        │      │   (Caddy)          │      │
-│   │   :3000-3999       │      │   file_server      │      │
+│   │   (systemd)         │      │   (Caddy)           │      │
+│   │   :3000-3999        │      │   file_server       │      │
 │   └─────────┬───────────┘      └──────────┬─────────┘      │
 │             │                             │                │
 │             └──────────┬──────────────────┘                │
@@ -54,355 +74,103 @@ curl -sS https://get.velo-deploy.sh | bash
 └─────────────────────────────────────────────────────────────┘
 ```
 
+Read the [architecture overview](https://antojsh.github.io/velo-deploy/architecture/overview/) for the full picture.
+
+## Documentation
+
+The complete documentation lives in [`docs/`](docs/) and is deployed to **https://antojsh.github.io/velo-deploy/**.
+
+| | English | Español |
+| --- | --- | --- |
+| Getting started | [Install](https://antojsh.github.io/velo-deploy/getting-started/installation/) · [Quick deploy](https://antojsh.github.io/velo-deploy/getting-started/quick-deploy/) · [First app](https://antojsh.github.io/velo-deploy/getting-started/first-app/) | [Instalación](https://antojsh.github.io/velo-deploy/es/getting-started/installation/) · [Deploy rápido](https://antojsh.github.io/velo-deploy/es/getting-started/quick-deploy/) · [Primera app](https://antojsh.github.io/velo-deploy/es/getting-started/first-app/) |
+| Guides | [CLI](https://antojsh.github.io/velo-deploy/guide/cli/) · [TUI](https://antojsh.github.io/velo-deploy/guide/tui/) · [Domains](https://antojsh.github.io/velo-deploy/guide/domains/) · [Webhooks](https://antojsh.github.io/velo-deploy/guide/webhooks/) | [CLI](https://antojsh.github.io/velo-deploy/es/guide/cli/) · [TUI](https://antojsh.github.io/velo-deploy/es/guide/tui/) · [Dominios](https://antojsh.github.io/velo-deploy/es/guide/domains/) · [Webhooks](https://antojsh.github.io/velo-deploy/es/guide/webhooks/) |
+| Reference | [Config schema](https://antojsh.github.io/velo-deploy/reference/config-schema/) · [CLI reference](https://antojsh.github.io/velo-deploy/reference/cli-reference/) | [Schema de config](https://antojsh.github.io/velo-deploy/es/reference/config-schema/) · [Referencia de CLI](https://antojsh.github.io/velo-deploy/es/reference/cli-reference/) |
+| Operations | [Upgrade](https://antojsh.github.io/velo-deploy/operations/upgrade/) · [Uninstall](https://antojsh.github.io/velo-deploy/operations/uninstall/) · [Troubleshooting](https://antojsh.github.io/velo-deploy/operations/troubleshooting/) | [Upgrade](https://antojsh.github.io/velo-deploy/es/operations/upgrade/) · [Desinstalar](https://antojsh.github.io/velo-deploy/es/operations/uninstall/) · [Troubleshooting](https://antojsh.github.io/velo-deploy/es/operations/troubleshooting/) |
+
 ## Requirements
 
 - **OS:** Linux (Ubuntu 20.04+, Debian 11+, or similar)
 - **Architecture:** x86_64 (amd64)
-- **Privileges:** Root access for installation
-- **Ports:** 80, 443, and optionally 9999 (webhooks)
+- **Privileges:** `root` access for installation
+- **Ports:** `80`, `443`, and optionally `9999` (webhooks)
 
-## Installation
+## Build from source
 
-### Quick Install
-
-```bash
-curl -sS https://get.velo-deploy.sh | bash
-```
-
-### Manual Install
+Requires Go 1.22 or later.
 
 ```bash
-# Clone the repository
 git clone https://github.com/antojsh/velo-deploy.git
 cd velo-deploy
-
-# Build the binary
 go build -o velo-deploy ./cmd/deploy
-
-# Install (requires root)
+sudo install -m 0755 velo-deploy /usr/local/bin/velo-deploy
 sudo ./install.sh
 ```
 
-### Post-Installation
-
-After installation, start the TUI:
-
-```bash
-velo-deploy
-```
-
-## Usage
-
-### TUI Dashboard
-
-Launch the terminal-based dashboard for visual management:
-
-```bash
-velo-deploy
-```
-
-**Keyboard Shortcuts:**
-
-| Key | Action |
-|-----|--------|
-| `↑` / `↓` | Navigate app list |
-| `Tab` | Switch panel |
-| `Enter` | Select app |
-| `N` | New deploy (from git) |
-| `A` | Add existing app |
-| `R` | Restart app (Node.js only) |
-| `S` | Stop app (Node.js only) |
-| `L` | View logs |
-| `D` | Delete app |
-| `Q` | Quit |
-
-### CLI Commands
-
-#### Deploy from Git
-
-```bash
-# Basic deployment
-velo-deploy deploy https://github.com/user/my-api
-
-# With custom domain
-velo-deploy deploy https://github.com/user/my-api --domain api.example.com
-
-# With custom alias
-velo-deploy deploy https://github.com/user/my-api --alias myapi.local
-```
-
-#### Add Existing App
-
-Register an already-cloned application:
-
-```bash
-# Auto-detect type (Node.js or static)
-velo-deploy add my-site /opt/deploy/apps/my-site
-
-# Explicitly set type
-velo-deploy add my-site /opt/deploy/apps/my-site --type static
-velo-deploy add my-api /opt/deploy/apps/my-api --type node
-
-# With domain
-velo-deploy add my-site /opt/deploy/apps/my-site --domain mysite.com
-```
-
-#### List Apps
-
-```bash
-velo-deploy list
-```
-
-#### Restart / Stop (Node.js apps)
-
-```bash
-velo-deploy restart my-api
-velo-deploy stop my-api
-```
-
-#### View Logs
-
-```bash
-# View last 200 lines
-velo-deploy logs my-api
-
-# Follow log output
-velo-deploy logs my-api -f
-```
-
-#### Remove App
-
-```bash
-velo-deploy remove my-api
-```
-
-### Auto-Deploy via Webhooks
-
-1. **Start the webhook daemon:**
-
-   ```bash
-   # On a specific port
-   velo-deploy daemon --port 9999
-
-   # Or via systemd (installed automatically)
-   sudo systemctl enable --now velo-watcher
-   ```
-
-2. **Configure GitHub webhook:**
-
-   - Go to your repository → Settings → Webhooks → Add webhook
-   - Payload URL: `http://your-server:9999/webhook`
-   - Content type: `application/json`
-   - Events: Push events (select Just the push event)
-
-3. **How it works:**
-
-   - Only pushes to `main` or `master` trigger deployments
-   - Velo automatically pulls, rebuilds, and restarts the app
-
-## Project Structure
+## Project structure
 
 ```
-/etc/velo-deploy/
-├── config.json          # App metadata and configuration
-├── apps/                # Deployed application source code
-│   └── <app-name>/
-├── logs/                # Deploy logs
-│   └── <app-name>.log
-/var/log/velo-deploy/    # System logs
-
-/etc/systemd/system/
-├── velo-watcher.service  # Webhook watcher daemon
-├── velo-<app>.service   # Per-app systemd units
-
-/etc/caddy/conf.d/
-├── <app>.conf           # Per-app Caddy configs (domain-based)
-├── _shared.conf         # Shared catch-all config (path-based)
+.
+├── cmd/deploy/        # Main entry point (CLI / TUI / daemon)
+├── internal/          # Go packages
+│   ├── caddy/         # Caddy vhost generation
+│   ├── config/        # /etc/velo-deploy/config.json
+│   ├── deploy/        # Git pull, build, systemd wiring
+│   ├── hosts/         # /etc/hosts management
+│   ├── node/          # nvm + Node version management
+│   ├── systemd/       # Unit file generation
+│   └── tui/           # Bubble Tea dashboard
+├── docs/              # Astro + Starlight documentation site
+├── .github/           # Issue templates, PR template, workflows
+├── install.sh         # System installer
+└── uninstall.sh       # System uninstaller
 ```
 
-## Configuration
-
-Configuration is stored at `/etc/velo-deploy/config.json`:
-
-```json
-{
-  "caddy_conf_dir": "/etc/caddy/conf.d",
-  "apps_dir": "/opt/deploy/apps",
-  "logs_dir": "/var/log/velo-deploy",
-  "daemon_port": "9999",
-  "nvm_dir": "/opt/nvm",
-  "apps": {
-    "my-api": {
-      "name": "my-api",
-      "type": "node",
-      "repo_url": "https://github.com/user/my-api",
-      "branch": "main",
-      "node_version": "20",
-      "port": 3000,
-      "domain": "",
-      "alias": "my-api.local",
-      "node_path": "/opt/nvm/versions/node/v20.0.0/bin/node",
-      "entry_point": "index.js"
-    },
-    "my-site": {
-      "name": "my-site",
-      "type": "static",
-      "domain": "",
-      "alias": "my-site.local",
-      "output_dir": "dist"
-    }
-  }
-}
-```
-
-## Security
-
-Each application is isolated using Linux security features:
-
-| Setting | Purpose |
-|---------|---------|
-| `ProtectSystem=full` | /usr, /boot, /etc are read-only |
-| `ProtectHome=true` | Cannot access other users' home directories |
-| `PrivateTmp=true` | Isolated /tmp filesystem |
-| `NoNewPrivileges=true` | Prevents privilege escalation |
-| `ReadWritePaths=` | Limited to app directory only |
-
-**Per-App Users:** Each app runs under its own Linux user (`velo-<appname>`) with no login shell and no password.
-
-**Filesystem Isolation:** Apps can only write to their own directory and the system tmp.
-
-## Node.js Version Management
-
-Velo Deploy uses nvm to manage Node.js versions:
-
-- Versions are installed to `/opt/nvm/versions/node/`
-- Detected from `package.json` `engines.node` field
-- Default version: **Node.js 20**
-- Supported: Node.js 16, 18, 20, 22
-
-```json
-{
-  "name": "my-app",
-  "engines": {
-    "node": ">=18.0.0"
-  }
-}
-```
-
-## Static Site Support
-
-Velo Deploy automatically detects and serves static sites:
-
-**Detection:**
-- Contains `index.html` in root
-- Contains `package.json` with build script
-
-**Build Process:**
-- Runs `npm run build` automatically
-- Serves from output directory (auto-detected or specified)
-
-**Supported Output Directories** (in order of priority):
-1. `dist`
-2. `build`
-3. `_site`
-4. `public`
-5. `output`
-
-**Example Caddy config for static sites:**
-
-```caddy
-mysite.local {
-    root * /opt/deploy/apps/mysite/dist
-    file_server
-}
-```
-
-## Tech Stack
+## Tech stack
 
 | Component | Technology | Purpose |
-|-----------|------------|---------|
-| Language | Go 1.22+ | Single static binary |
-| TUI | Bubble Tea | Terminal UI framework |
-| Styling | Lipgloss | TUI styling |
-| Process Mgmt | systemd | App lifecycle, isolation |
-| Web Server | Caddy | Reverse proxy, automatic HTTPS |
-| Node.js | nvm | Version management |
-
-## Troubleshooting
-
-### App not starting
-
-```bash
-# Check systemd status
-sudo systemctl status velo-myapp
-
-# View logs
-sudo journalctl -u velo-myapp -f
-
-# Check Caddy config
-sudo caddy validate --config /etc/caddy/conf.d/myapp.conf
-```
-
-### Webhook not working
-
-```bash
-# Verify daemon is running
-sudo systemctl status velo-watcher
-
-# Test webhook endpoint
-curl -X POST http://localhost:9999/webhook
-```
-
-### Port conflicts
-
-```bash
-# Check which apps are using ports
-ss -tlnp | grep -E '3000|4000'
-
-# Remove stale configs
-sudo rm /etc/caddy/conf.d/myapp.conf
-sudo caddy reload
-```
+| --- | --- | --- |
+| Language | Go 1.22+ | Single static binary, fast startup, easy cross-compile |
+| TUI | [Bubble Tea](https://github.com/charmbracelet/bubbletea) | Terminal UI framework |
+| Styling | [Lipgloss](https://github.com/charmbracelet/lipgloss) | TUI styling |
+| Process mgmt | systemd | App lifecycle, isolation, hardening |
+| Web server | [Caddy](https://caddyserver.com/) | Reverse proxy, automatic HTTPS via ACME |
+| Node.js | [nvm](https://github.com/nvm-sh/nvm) | Per-app version management |
+| Docs | [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/) | Static documentation site |
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions of all sizes — bug fixes, docs, feature proposals, and new generators.
 
-### Development Setup
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and commit conventions.
+- Browse [good first issues](https://github.com/antojsh/velo-deploy/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+- Join the conversation in [GitHub Discussions](https://github.com/antojsh/velo-deploy/discussions).
+- Read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
+
+### Development
 
 ```bash
-# Clone the repository
-git clone https://github.com/antojsh/velo-deploy.git
-cd velo-deploy
-
-# Install Go (1.22+)
-# Ubuntu/Debian:
-sudo apt install golang-go
-
-# Build
-go build -o velo-deploy ./cmd/deploy
-
-# Run tests
+# Run the tests
 go test ./...
 
-# Run with verbose output
-go run ./cmd/deploy
+# Run with coverage
+go test -cover ./...
+
+# Lint
+go vet ./...
+gofmt -l .
+
+# Run the docs locally
+cd docs && pnpm install && pnpm dev
 ```
 
-### Code Style
+## Releases
 
-- Follow Go standard conventions
-- Run `go fmt` before committing
-- Ensure `go vet` passes
+This project uses [release-please](https://github.com/googleapis/release-please) to automate versioning, CHANGELOG generation, and GitHub releases. Commits that follow [Conventional Commits](https://www.conventionalcommits.org/) are automatically rolled into the next release. See [CONTRIBUTING.md](CONTRIBUTING.md#commit-conventions) for details.
+
+## Security
+
+Found a vulnerability? Please **do not** open a public issue. Follow the disclosure process in [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Acknowledgments
-
-Built with:
-- [Bubble Tea](https://github.com/charmbracelet/bubbletea) - TUI framework
-- [Lipgloss](https://github.com/charmbracelet/lipgloss) - Style library
-- [Caddy](https://caddyserver.com/) - Web server
-- [nvm](https://github.com/nvm-sh/nvm) - Node version management
+[MIT](LICENSE) © 2024 Velo Deploy contributors

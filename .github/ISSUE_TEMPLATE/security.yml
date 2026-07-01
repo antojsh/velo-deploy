@@ -1,0 +1,11 @@
+name: Security vulnerability
+description: Report a security vulnerability privately. DO NOT use this for non-security bugs.
+labels: ["security", "needs-triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not use this template for non-security issues.** For bugs, use the bug template. For security vulnerabilities, please email [security@velo-deploy.dev](mailto:security@velo-deploy.dev) or use [GitHub's private vulnerability reporting](https://github.com/antojsh/velo-deploy/security/advisories/new) instead. See [SECURITY.md](https://github.com/antojsh/velo-deploy/blob/master/SECURITY.md) for the full disclosure policy.
+
+        This template is provided only as a redirect — opening a public issue for a security vulnerability is not appropriate.

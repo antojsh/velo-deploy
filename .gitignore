@@ -1,9 +1,16 @@
 # Binaries
 velo-deploy
+velo-deploy.bak
 deploy
 deploy-cli
 /deploy
 /deploy-cli
+
+# Go
+*.test
+*.out
+coverage.out
+coverage.html
 
 # IDE
 .idea/
@@ -14,6 +21,7 @@ deploy-cli
 # OS
 .DS_Store
 Thumbs.db
+*~
 
 # Build output
 dist/
@@ -21,3 +29,22 @@ build/
 
 # Logs
 *.log
+
+# Documentation (Astro / Starlight)
+docs/node_modules/
+docs/dist/
+docs/.astro/
+docs/.cache/
+docs/.env
+docs/.env.*
+!docs/.env.example
+docs/pnpm-debug.log*
+docs/.pnpm-store/
+
+# Release artifacts
+velo-deploy_*
+
+# Environment
+.env
+.env.*
+!.env.example

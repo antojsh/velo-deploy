@@ -1,0 +1,94 @@
+---
+title: Dominios custom
+description: Mapeá un dominio real a una app de Velo Deploy y obtené HTTPS automático.
+---
+
+import { Steps, Aside } from '@astrojs/starlight/components';
+
+Velo usa [Caddy](https://caddyserver.com/) por debajo. Caddy maneja ACME (Let's Encrypt) automáticamente — la primera vez que un request llega a tu dominio, Caddy pide un certificado, lo valida por HTTP-01 y lo renueva antes de que expire.
+
+## Prerrequisitos
+
+- Un dominio registrado con acceso a sus registros DNS.
+- Puertos `80` y `443` abiertos en el servidor.
+- La IP pública del servidor (o el target DNS correcto).
+
+## 1. Apuntá el DNS a tu servidor
+
+Creá un registro `A` para el dominio (y `www` si querés ambos):
+
+| Nombre | Tipo | Valor |
+| --- | --- | --- |
+| `@` | `A` | `<ip-servidor>` |
+| `www` | `A` | `<ip-servidor>` |
+
+La propagación DNS usualmente tarda unos minutos; `dig +short api.example.com @1.1.1.1` debería devolver la IP de tu servidor antes de seguir.
+
+## 2. Desplegá con el flag `--domain`
+
+```bash
+velo-deploy deploy https://github.com/user/api --domain api.example.com
+```
+
+O agregale un dominio a una app existente:
+
+```bash
+velo-deploy add my-site /opt/deploy/apps/my-site --domain mysite.com
+```
+
+Velo escribe un vhost de Caddy en `/etc/caddy/conf.d/<app>.conf`:
+
+```nginx
+api.example.com {
+    reverse_proxy localhost:3000
+}
+```
+
+Para sitios estáticos:
+
+```nginx
+mysite.com {
+    root * /opt/deploy/apps/mysite/dist
+    file_server
+}
+```
+
+## 3. Verificá el certificado
+
+Pegale al dominio por HTTPS:
+
+```bash
+curl -I https://api.example.com
+```
+
+Deberías ver `HTTP/2 200` y una cadena de certificados válida. Si el certificado aún no se emitió, Caddy reintenta automáticamente — esperá unos segundos y probá de nuevo.
+
+<Aside type="tip" title="Dominios wildcard y múltiples apps">
+	Cada app debe tener su propio dominio (o subdominio). Los certs wildcard no se generan automáticamente. Si necesitás `*.example.com`, apuntá tu registrador a Caddy con una config custom de [on-demand TLS](https://caddyserver.com/docs/automatic-https#on-demand-tls) — fuera del alcance de Velo.
+</Aside>
+
+## 4. Forzar HTTPS
+
+Caddy redirige HTTP a HTTPS por default. Si necesitás una política HSTS más estricta, editá el vhost generado:
+
+```nginx
+api.example.com {
+    reverse_proxy localhost:3000
+    header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+}
+```
+
+Después recargá Caddy:
+
+```bash
+sudo caddy reload --config /etc/caddy/Caddyfile
+```
+
+## Quitar un dominio
+
+```bash
+velo-deploy remove my-app
+velo-deploy deploy https://github.com/user/api --domain api.example.com
+```
+
+No hay un comando "desmapear dominio". Para cambiar dominios en una app existente, remové la app y redeployá con el nuevo flag.

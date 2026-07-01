@@ -1,0 +1,97 @@
+---
+title: Static sites
+description: Deploy pre-built static sites with auto-detected output directories.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Velo Deploy auto-detects static sites and serves them straight from Caddy's `file_server`. No custom build step is required — Velo runs `npm run build` if a build script is present.
+
+## How Velo detects a static site
+
+A repository is treated as a static site when **either** of the following is true:
+
+- The repo root contains an `index.html` file.
+- The `package.json` has a `build` script.
+
+Node.js-only projects (no `index.html`, no `build` script) are detected as Node apps.
+
+## How the build runs
+
+<Steps>
+
+1. Velo runs `npm ci` (or `npm install` if there is no lockfile).
+2. If a `build` script exists, Velo runs `npm run build`.
+3. Velo looks for the build output in the directories below, in order, and uses the first one that exists.
+4. Caddy is configured to serve from that directory.
+
+</Steps>
+
+### Output directory priority
+
+1. `dist`
+2. `build`
+3. `_site`
+4. `public`
+5. `output`
+
+You can override with `--output-dir` on the CLI or `output_dir` in `config.json`:
+
+```bash
+velo-deploy add my-site /opt/deploy/apps/my-site --type static
+velo-deploy add my-site /opt/deploy/apps/my-site --type static
+```
+
+## Supported generators
+
+Out of the box, any generator that produces HTML, CSS, and JS in a known output directory works. Tested:
+
+- [Vite](https://vitejs.dev/) → `dist`
+- [Astro](https://astro.build/) → `dist`
+- [Next.js](https://nextjs.org/) (static export) → `out`
+- [Nuxt](https://nuxt.com/) → `.output/public`
+- [SvelteKit](https://kit.svelte.dev/) (static) → `build`
+- [Hugo](https://gohugo.io/) → `public`
+- [Jekyll](https://jekyllrb.com/) → `_site`
+- [Eleventy](https://www.11ty.dev/) → `_site`
+
+If your generator outputs to a non-standard directory, configure it explicitly.
+
+## Custom headers and redirects
+
+Edit the generated Caddy vhost at `/etc/caddy/conf.d/<app>.conf`:
+
+```nginx
+mysite.com {
+    root * /opt/deploy/apps/mysite/dist
+    file_server
+    @spa path /app/*
+    rewrite @spa /app/index.html
+    header Cache-Control "public, max-age=31536000"
+    header /index.html "Cache-Control: no-cache"
+}
+```
+
+Then reload Caddy:
+
+```bash
+sudo caddy reload --config /etc/caddy/Caddyfile
+```
+
+<Aside type="caution" title="Manual edits are not idempotent">
+	Re-running `velo-deploy deploy` or `velo-deploy add` rewrites the vhost from scratch. If you need persistent customizations, fork the [install script](https://github.com/antojsh/velo-deploy/blob/master/install.sh) and add a post-deploy hook that re-applies your patches.
+</Aside>
+
+## SPA routing
+
+For client-side routers (React Router, Vue Router, etc.), add a `try_files` directive in the vhost:
+
+```nginx
+mysite.com {
+    root * /opt/deploy/apps/mysite/dist
+    try_files {path} /index.html
+    file_server
+}
+```
+
+Or use the `rewrite` snippet shown above for finer control.

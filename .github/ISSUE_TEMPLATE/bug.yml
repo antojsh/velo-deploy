@@ -1,0 +1,107 @@
+name: Bug report
+description: Report something that is broken or behaves incorrectly.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill out the template below so we can reproduce and fix it.
+
+  - type: input
+    id: version
+    attributes:
+      label: Velo Deploy version
+      description: Output of `velo-deploy version`
+      placeholder: "v0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      description: The host where Velo Deploy is installed.
+      options:
+        - Ubuntu 24.04 LTS
+        - Ubuntu 22.04 LTS
+        - Ubuntu 20.04 LTS
+        - Debian 12
+        - Debian 11
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: input
+    id: arch
+    attributes:
+      label: Architecture
+      description: e.g. x86_64, aarch64
+      placeholder: "x86_64"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: A clear, concise description of the bug.
+      placeholder: |
+        When I run `velo-deploy deploy https://github.com/foo/bar` the CLI exits with code 5 even though no other app is using port 3000.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps we can follow to reproduce the issue.
+      placeholder: |
+        1. SSH into a fresh Ubuntu 22.04 VPS
+        2. Run `curl -sS https://get.velo-deploy.sh | bash`
+        3. Run `velo-deploy deploy https://github.com/foo/bar`
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: |
+        Paste the output of `velo-deploy --version`, `journalctl -u velo-watcher -n 200 --no-pager`,
+        and `journalctl -u velo-<app> -n 200 --no-pager` if relevant. Wrap in triple backticks.
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Config (sanitized)
+    description: |
+      Output of `velo-deploy list --json` and the relevant portion of `/etc/velo-deploy/config.json`.
+      **Remove any secrets before pasting.**
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Self-check
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am running the latest stable release
+          required: true
+        - label: I have removed secrets from the logs and config above
+          required: true
