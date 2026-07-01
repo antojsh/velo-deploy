@@ -47,9 +47,13 @@ WantedBy=multi-user.target
 }
 
 // RemoveService deletes the systemd unit file.
+// Missing file is not an error (idempotent).
 func RemoveService(appName string) error {
 	svcPath := fmt.Sprintf("%s/deploy-%s.service", systemdDir, appName)
-	return os.Remove(svcPath)
+	if err := os.Remove(svcPath); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 // DaemonReload runs systemctl daemon-reload.
