@@ -15,14 +15,15 @@ export default defineConfig({
         'Bare Metal PaaS — Deploy Node.js applications and static sites to any VPS without Docker.',
       logo: {
         src: './src/assets/logo.svg',
-        // The logo SVG already contains the wordmark, so hide the site title
-        // text in the header to avoid showing "Velo Deploy" twice. The title
-        // is still read by screen readers for accessibility.
         replacesTitle: true,
       },
       favicon: '/favicon.svg',
       social: [
-        { icon: 'github', label: 'GitHub', href: 'https://github.com/antojsh/velo-deploy' },
+        {
+          icon: 'github',
+          label: 'GitHub',
+          href: 'https://github.com/antojsh/velo-deploy',
+        },
       ],
       editLink: {
         baseUrl: 'https://github.com/antojsh/velo-deploy/edit/master/docs/',
@@ -30,23 +31,53 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Getting Started',
-          autogenerate: { directory: 'getting-started' },
+          items: [
+            {
+              autogenerate: {
+                directory: 'getting-started',
+              },
+            },
+          ],
         },
         {
           label: 'Guides',
-          autogenerate: { directory: 'guide' },
+          items: [
+            {
+              autogenerate: {
+                directory: 'guide',
+              },
+            },
+          ],
         },
         {
           label: 'Architecture',
-          autogenerate: { directory: 'architecture' },
+          items: [
+            {
+              autogenerate: {
+                directory: 'architecture',
+              },
+            },
+          ],
         },
         {
           label: 'Reference',
-          autogenerate: { directory: 'reference' },
+          items: [
+            {
+              autogenerate: {
+                directory: 'reference',
+              },
+            },
+          ],
         },
         {
           label: 'Operations',
-          autogenerate: { directory: 'operations' },
+          items: [
+            {
+              autogenerate: {
+                directory: 'operations',
+              },
+            },
+          ],
         },
       ],
       defaultLocale: 'root',
