@@ -23,7 +23,10 @@ jobs:
           go-version: '1.22'
 
       - name: Download modules
-        run: go mod tidy && go mod download
+        run: |
+          go get github.com/stretchr/testify@v1.10.0
+          go mod tidy
+          go mod download
 
       - name: Check formatting
         run: |
