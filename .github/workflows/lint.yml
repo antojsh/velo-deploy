@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# Silence the Node 20 deprecation notice from the runner.
+# TODO: drop this once every Node-using action supports Node 24.
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
 jobs:
   go:
     name: Go (fmt + vet)
