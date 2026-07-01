@@ -129,7 +129,6 @@ func TestLoad_NullApps(t *testing.T) {
 
 func TestSave(t *testing.T) {
 	tmpDir := t.TempDir()
-	configFile := filepath.Join(tmpDir, "config.json")
 
 	cfg := &Config{
 		CaddyConfDir: "/test/caddy",

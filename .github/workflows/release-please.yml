@@ -103,7 +103,10 @@ jobs:
           cache: true
 
       - name: Download modules
-        run: go mod tidy && go mod download
+        run: |
+          go get github.com/stretchr/testify@v1.10.0
+          go mod tidy
+          go mod download
 
       - name: Run tests
         run: go test ./... -race

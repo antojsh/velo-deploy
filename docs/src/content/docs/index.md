@@ -1,9 +1,10 @@
 ---
 title: Velo Deploy
-description: Bare Metal PaaS — Deploy Node.js applications and static sites to any VPS without Docker.
+description: Deploy Node.js and static sites to any VPS without containers, Kubernetes, or Docker.
 template: splash
 hero:
-  tagline: A lightweight, secure PaaS that uses systemd for process isolation and Caddy for automatic HTTPS. No containers, no Kubernetes, no overhead.
+  title: Deploy without the container ship
+  tagline: One VPS, one command, one binary. No containers, no Kubernetes — just systemd, Caddy, and a Go runtime that gets out of your way.
   actions:
     - text: Get started
       link: getting-started/installation/
@@ -13,53 +14,33 @@ hero:
       link: https://github.com/antojsh/velo-deploy
       icon: external
       variant: minimal
-  image:
-    file: ../../assets/logo-dark.svg
-    alt: Velo Deploy logo
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+## Ship in three commands
 
-<CardGrid stagger>
-	<Card title="One-liner install" icon="rocket">
-		From zero to running in seconds. A single curl command installs the daemon, TUI, CLI, and all required services.
+From a fresh Ubuntu VPS to a live HTTPS site in under a minute. No `docker-compose.yml`, no Helm chart, no CI pipeline.
 
-		```bash
-		curl -sS https://get.velo-deploy.sh | bash
-		```
-	</Card>
-	<Card title="Automatic HTTPS" icon="seti:lock">
-		Caddy issues and renews Let's Encrypt certificates for every domain. No manual cert management, no downtime.
-	</Card>
-	<Card title="Node.js and static sites" icon="seti:javascript">
-		Deploy long-running Node services and pre-built static assets from the same CLI. Auto-detects build output directories.
-	</Card>
-	<Card title="Systemd isolation" icon="seti:default">
-		Each app runs as its own Linux user with a hardened systemd unit: read-only system, isolated tmp, no privilege escalation.
-	</Card>
-	<Card title="GitHub webhooks" icon="github">
-		Push to `main` and Velo pulls, builds, and restarts. No CI pipeline required.
-	</Card>
-	<Card title="TUI dashboard" icon="seti:terminal">
-		Manage every app from a single keyboard-driven terminal interface. No web UI to maintain.
-	</Card>
-</CardGrid>
+```bash
+# 1. Install once
+curl -sS https://get.velo-deploy.sh | bash
 
-## Why Velo Deploy?
+# 2. Deploy any repo
+velo-deploy deploy https://github.com/your/repo
 
-Container-based platforms are powerful, but most teams only need a small subset of their features. Velo Deploy ships just enough to deploy a Node.js app or a static site to a single VPS, with the security guarantees you would expect from a PaaS.
+# 3. Push to ship again, automatically
+git push origin main
+```
 
-<LinkCard
-	title="Read the architecture overview →"
-	description="Understand how systemd, Caddy, and the Go binary fit together."
-	href="architecture/overview/"
-/>
+## Why Velo Deploy
 
-## Quick navigation
+- **Automatic HTTPS** — Caddy issues and renews Let's Encrypt certs for every domain. Point a domain at your VPS and HTTPS just works.
+- **systemd isolation** — Each app is its own Linux user with a hardened unit: `ProtectSystem=strict`, `PrivateTmp`, `NoNewPrivileges`, cgroup resource limits.
+- **Git push to ship** — Wire the built-in webhook watcher and every push to `main` redeploys automatically. No CI, no GitHub Actions, no third-party service.
+- **One Go binary, ~15 MB** — No runtime, no container daemon, no control plane. Velo adds less to your VPS than a single Node process.
 
-<CardGrid>
-	<LinkCard title="Install" href="getting-started/installation/" description="System requirements and the one-liner installer." />
-	<LinkCard title="Quick deploy" href="getting-started/quick-deploy/" description="Go from a Git URL to a running app in 30 seconds." />
-	<LinkCard title="CLI reference" href="reference/cli-reference/" description="Every command, flag, and exit code." />
-	<LinkCard title="Troubleshooting" href="operations/troubleshooting/" description="Diagnose the most common production issues." />
-</CardGrid>
+## Ready to ship?
+
+- [Install Velo Deploy](getting-started/installation/) — Requirements and the one-liner installer
+- [Quick deploy in 30 seconds](getting-started/quick-deploy/) — Skip the reading, deploy a sample app now
+- [Understand the architecture](architecture/overview/) — How systemd, Caddy, and the Go binary fit together
+- [Browse the CLI reference](reference/cli-reference/) — Every command, flag, and exit code

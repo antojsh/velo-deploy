@@ -1,9 +1,13 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
+// In dev the user expects http://localhost:4321/ to work.
+// In production (GitHub Pages) the site lives under /velo-deploy.
+const base = process.env.NODE_ENV === 'production' ? '/velo-deploy' : '/';
+
 export default defineConfig({
   site: 'https://antojsh.github.io',
-  base: '/velo-deploy',
+  base,
   integrations: [
     starlight({
       title: 'Velo Deploy',
@@ -11,7 +15,10 @@ export default defineConfig({
         'Bare Metal PaaS — Deploy Node.js applications and static sites to any VPS without Docker.',
       logo: {
         src: './src/assets/logo.svg',
-        replacesTitle: false,
+        // The logo SVG already contains the wordmark, so hide the site title
+        // text in the header to avoid showing "Velo Deploy" twice. The title
+        // is still read by screen readers for accessibility.
+        replacesTitle: true,
       },
       favicon: '/favicon.svg',
       social: [

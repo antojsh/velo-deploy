@@ -78,7 +78,7 @@ Read the [architecture overview](https://antojsh.github.io/velo-deploy/architect
 
 ## Documentation
 
-The complete documentation lives in [`docs/`](docs/) and is deployed to **https://antojsh.github.io/velo-deploy/**.
+The complete documentation lives in [`docs/`](docs/) and is deployed to **<https://antojsh.github.io/velo-deploy/>**.
 
 | | English | Español |
 | --- | --- | --- |

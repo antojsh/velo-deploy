@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"deploy/internal/caddy"
-	"deploy/internal/config"
-	"deploy/internal/hosts"
-	deploynode "deploy/internal/node"
-	"deploy/internal/systemd"
+	"velo-deploy/internal/caddy"
+	"velo-deploy/internal/config"
+	"velo-deploy/internal/hosts"
+	deploynode "velo-deploy/internal/node"
+	"velo-deploy/internal/systemd"
 )
 
 // Deploy performs a full deployment from a git repository.
@@ -398,8 +398,9 @@ func rebuildSharedCaddyConfig(cfg *config.Config) error {
 }
 
 func deriveAppName(repoURL string) string {
-	// Strip .git suffix and get last path component
+	// Strip .git suffix and any trailing slash, then take the last path component.
 	repoURL = strings.TrimSuffix(repoURL, ".git")
+	repoURL = strings.TrimRight(repoURL, "/")
 	parts := strings.Split(repoURL, "/")
 	if len(parts) > 0 {
 		name := parts[len(parts)-1]

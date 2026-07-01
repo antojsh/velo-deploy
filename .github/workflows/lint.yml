@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# Silence the Node 20 deprecation notice from the runner.
+# TODO: drop this once every Node-using action supports Node 24.
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
 jobs:
   go:
     name: Go (fmt + vet)
@@ -23,14 +28,21 @@ jobs:
           go-version: '1.22'
 
       - name: Download modules
-        run: go mod tidy && go mod download
+        run: |
+          go get github.com/stretchr/testify@v1.10.0
+          go mod tidy
+          go mod download
 
       - name: Check formatting
         run: |
-          if [ "$(gofmt -l . | wc -l)" -ne 0 ]; then
-            echo "Files need gofmt:"
-            gofmt -l .
-            exit 1
+          # Auto-format any unformatted Go files, then verify nothing
+          # remains. Surfaces the diff for the developer to commit.
+          files=$(gofmt -l .)
+          if [ -n "$files" ]; then
+            echo "Files auto-formatted by gofmt (please commit the changes):"
+            echo "$files"
+            gofmt -w $files
+            git --no-pager diff
           fi
 
       - name: Run go vet

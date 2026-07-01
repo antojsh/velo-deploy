@@ -25,47 +25,53 @@ type Route struct {
 }
 
 // GenerateConfig creates a Caddy config file for an app.
-// If domain is empty, the app will be served via path-based routing
-// under the shared catch-all config (:443 with tls internal).
+// If domain is empty, the app is served via path-based routing under
+// the shared catch-all config (:443 with tls internal), so no per-app
+// file is created.
 func GenerateConfig(appName, domain, upstream string) error {
+	if domain == "" {
+		return nil
+	}
 	os.MkdirAll(confDir, 0755)
 
 	confPath := filepath.Join(confDir, appName+".conf")
-
-	var conf string
-	if domain != "" {
-		// Domain → Let's Encrypt (automatic HTTPS)
-		conf = fmt.Sprintf(`%s {
+	conf := fmt.Sprintf(`%s {
     reverse_proxy %s
 }
 `, domain, upstream)
-	}
-
 	return os.WriteFile(confPath, []byte(conf), 0644)
 }
 
 // GenerateStaticConfig creates a Caddy config file for a static site app.
+// If domain is empty, no per-app file is created (path-based routing only).
 func GenerateStaticConfig(appName, domain, rootDir string) error {
+	if domain == "" {
+		return nil
+	}
 	os.MkdirAll(confDir, 0755)
 
 	confPath := filepath.Join(confDir, appName+".conf")
-
-	var conf string
-	if domain != "" {
-		conf = fmt.Sprintf(`%s {
+	conf := fmt.Sprintf(`%s {
     root * %s
     file_server
 }
 `, domain, rootDir)
-	}
-
 	return os.WriteFile(confPath, []byte(conf), 0644)
 }
 
 // RebuildSharedConfig regenerates the catch-all config for all apps without domains.
 // Call this after adding/removing any app that has no domain.
+// If routes is empty, the shared file is removed instead of regenerated.
 func RebuildSharedConfig(routes []Route) error {
 	os.MkdirAll(confDir, 0755)
+
+	sharedPath := filepath.Join(confDir, "_shared.conf")
+	if len(routes) == 0 {
+		if err := os.Remove(sharedPath); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+		return nil
+	}
 
 	var sb strings.Builder
 	sb.WriteString(":443 {\n")
@@ -89,20 +95,27 @@ func RebuildSharedConfig(routes []Route) error {
 	sb.WriteString("    }\n")
 	sb.WriteString("}\n")
 
-	sharedPath := filepath.Join(confDir, "_shared.conf")
 	return os.WriteFile(sharedPath, []byte(sb.String()), 0644)
 }
 
 // RemoveSharedConfig removes the shared catch-all config.
+// Missing file is not an error (idempotent).
 func RemoveSharedConfig() error {
 	sharedPath := filepath.Join(confDir, "_shared.conf")
-	return os.Remove(sharedPath)
+	if err := os.Remove(sharedPath); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 // RemoveConfig deletes a single app's Caddy config file.
+// Missing file is not an error (idempotent).
 func RemoveConfig(appName string) error {
 	confPath := filepath.Join(confDir, appName+".conf")
-	return os.Remove(confPath)
+	if err := os.Remove(confPath); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 // Reload tells Caddy to reload its configuration.

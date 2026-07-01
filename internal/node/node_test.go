@@ -106,7 +106,9 @@ func TestDetectVersionFromPackageJSON_NoPackageJSON(t *testing.T) {
 
 func TestDetectVersionFromPackageJSON_MalformedNodeValue(t *testing.T) {
 	tmpDir := t.TempDir()
-	pkgJSON := `{"name":"test","engines":{"node":":}}`
+	// "abc" is a valid JSON value but not a valid Node major version.
+	// DetectVersionFromPackageJSON should fall back to the default.
+	pkgJSON := `{"name":"test","engines":{"node":"abc"}}`
 	err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(pkgJSON), 0644)
 	require.NoError(t, err)
 
@@ -128,15 +130,17 @@ func TestDetectVersionFromPackageJSON_EnginesBeforeNode(t *testing.T) {
 
 func TestGetNodePath_PrimaryExists(t *testing.T) {
 	tmpDir := t.TempDir()
-	nodeBinDir := filepath.Join(tmpDir, "20", "bin")
-	err := os.MkdirAll(nodeBinDir, 0755)
+	nvmDir := filepath.Join(tmpDir, "nvm")
+	v20Dir := filepath.Join(nvmDir, "versions", "node", "v20.11.0", "bin")
+	err := os.MkdirAll(v20Dir, 0755)
 	require.NoError(t, err)
-	err = os.WriteFile(filepath.Join(nodeBinDir, "node"), []byte("#!/bin/bash"), 0755)
+	err = os.WriteFile(filepath.Join(v20Dir, "node"), []byte("#!/bin/bash"), 0755)
 	require.NoError(t, err)
 
-	path, err := GetNodePath(tmpDir, "20")
+	path, err := GetNodePath(nvmDir, "20")
 	assert.NoError(t, err)
-	assert.Equal(t, filepath.Join(tmpDir, "20", "bin", "node"), path)
+	assert.Contains(t, path, "v20")
+	assert.Contains(t, path, "node")
 }
 
 func TestGetNodePath_PrimaryNotExists(t *testing.T) {

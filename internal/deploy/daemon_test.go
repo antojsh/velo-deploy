@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"deploy/internal/config"
+	"velo-deploy/internal/config"
 )
 
 func TestRunDaemon_WebhookHandler(t *testing.T) {
@@ -20,8 +20,9 @@ func TestRunDaemon_WebhookHandler(t *testing.T) {
 		AppsDir: t.TempDir(),
 		Apps:    make(map[string]*config.AppMeta),
 	}
+	_ = cfg
 
-	req, err := http.NewRequest("GET", "/webhook", nil)
+	req, err := http.NewRequest("POST", "/webhook", nil)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()

@@ -9,10 +9,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"deploy/internal/caddy"
-	"deploy/internal/config"
-	deploynode "deploy/internal/node"
-	"deploy/internal/systemd"
+	"velo-deploy/internal/caddy"
+	"velo-deploy/internal/config"
+	deploynode "velo-deploy/internal/node"
+	"velo-deploy/internal/systemd"
 )
 
 type webhookPayload struct {

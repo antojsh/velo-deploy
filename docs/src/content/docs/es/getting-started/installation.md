@@ -54,6 +54,7 @@ Usá el flujo manual cuando quieras pinear una versión específica o correr des
 <Tabs syncKey="install-method">
 	<TabItem label="Desde un tarball" icon="seti:default">
 
+		<!-- markdownlint-disable MD046 -->
 		```bash
 		VER=$(curl -sS https://api.github.com/repos/antojsh/velo-deploy/releases/latest | grep tag_name | cut -d '"' -f 4)
 		curl -sSLo velo-deploy.tar.gz "https://github.com/antojsh/velo-deploy/releases/download/${VER}/velo-deploy_${VER#v}_linux_amd64.tar.gz"
@@ -61,6 +62,7 @@ Usá el flujo manual cuando quieras pinear una versión específica o correr des
 		sudo install -m 0755 velo-deploy /usr/local/bin/velo-deploy
 		sudo ./install.sh
 		```
+		<!-- markdownlint-enable MD046 -->
 
 	</TabItem>
 	<TabItem label="Desde el fuente" icon="seti:shell">

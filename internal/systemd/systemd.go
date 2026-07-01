@@ -8,7 +8,9 @@ import (
 	"strings"
 )
 
-const systemdDir = "/etc/systemd/system"
+// systemdDir is a var (not const) so tests can point it at a temp dir
+// without touching the real /etc/systemd/system path.
+var systemdDir = "/etc/systemd/system"
 
 var execCommand = exec.Command
 
@@ -45,9 +47,13 @@ WantedBy=multi-user.target
 }
 
 // RemoveService deletes the systemd unit file.
+// Missing file is not an error (idempotent).
 func RemoveService(appName string) error {
 	svcPath := fmt.Sprintf("%s/deploy-%s.service", systemdDir, appName)
-	return os.Remove(svcPath)
+	if err := os.Remove(svcPath); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 // DaemonReload runs systemctl daemon-reload.

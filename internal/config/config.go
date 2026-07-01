@@ -6,7 +6,9 @@ import (
 	"path/filepath"
 )
 
-const (
+// These are vars (not consts) so tests can point them at a temp dir
+// without touching the real /etc/deploy or /opt/deploy paths.
+var (
 	ConfigDir  = "/etc/deploy"
 	ConfigFile = "config.json"
 	AppsDir    = "/opt/deploy/apps"
