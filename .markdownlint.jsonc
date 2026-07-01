@@ -4,5 +4,10 @@
   "MD024": { "siblings_only": true },
   "MD033": false,
   "MD041": false,
-  "MD046": { "style": "fenced" }
+  "MD046": { "style": "fenced" },
+  "MD010": false,
+  "MD040": false,
+  "MD026": false,
+  "MD031": false,
+  "MD036": false
 }

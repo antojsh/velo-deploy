@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091  # sourced files (/etc/os-release, nvm.sh) are not in shellcheck's source path in CI
 set -e
 
 # ==========================================

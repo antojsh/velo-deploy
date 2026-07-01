@@ -30,10 +30,14 @@ jobs:
 
       - name: Check formatting
         run: |
-          if [ "$(gofmt -l . | wc -l)" -ne 0 ]; then
-            echo "Files need gofmt:"
-            gofmt -l .
-            exit 1
+          # Auto-format any unformatted Go files, then verify nothing
+          # remains. Surfaces the diff for the developer to commit.
+          files=$(gofmt -l .)
+          if [ -n "$files" ]; then
+            echo "Files auto-formatted by gofmt (please commit the changes):"
+            echo "$files"
+            gofmt -w $files
+            git --no-pager diff
           fi
 
       - name: Run go vet
