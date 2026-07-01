@@ -20,6 +20,7 @@ func TestRunDaemon_WebhookHandler(t *testing.T) {
 		AppsDir: t.TempDir(),
 		Apps:    make(map[string]*config.AppMeta),
 	}
+	_ = cfg
 
 	req, err := http.NewRequest("GET", "/webhook", nil)
 	require.NoError(t, err)

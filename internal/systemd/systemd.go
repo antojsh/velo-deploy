@@ -8,7 +8,9 @@ import (
 	"strings"
 )
 
-const systemdDir = "/etc/systemd/system"
+// systemdDir is a var (not const) so tests can point it at a temp dir
+// without touching the real /etc/systemd/system path.
+var systemdDir = "/etc/systemd/system"
 
 var execCommand = exec.Command
 

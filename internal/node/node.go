@@ -1,19 +1,23 @@
 package node
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 var (
 	execCommand = exec.Command
 )
 
-// DetectVersionFromPackageJSON reads package.json and extracts the "engines.node" field.
-// Returns something like "20" or ">=18.0.0".
+// DetectVersionFromPackageJSON reads package.json and extracts the "engines.node"
+// field. Returns the major version as a string (e.g., "20") or the configured
+// default ("20") when the field is missing/empty/malformed. Returns an error
+// only when the file is missing or the JSON is invalid.
 func DetectVersionFromPackageJSON(workDir string) (string, error) {
 	pkgPath := filepath.Join(workDir, "package.json")
 	data, err := os.ReadFile(pkgPath)
@@ -21,54 +25,35 @@ func DetectVersionFromPackageJSON(workDir string) (string, error) {
 		return "", fmt.Errorf("package.json not found: %w", err)
 	}
 
-	content := string(data)
-	// Simple extraction without JSON parsing
-	// Look for "engines": { "node": "20" }
-	search := `"engines"`
-	idx := strings.Index(content, search)
-	if idx == -1 {
-		// Default to LTS
+	var pkg struct {
+		Engines struct {
+			Node string `json:"node"`
+		} `json:"engines"`
+	}
+	if err := json.Unmarshal(data, &pkg); err != nil {
+		return "", fmt.Errorf("invalid package.json: %w", err)
+	}
+
+	raw := strings.TrimSpace(pkg.Engines.Node)
+	if raw == "" {
 		return "20", nil
 	}
 
-	// Find "node" key after engines
-	sub := content[idx:]
-	nodeIdx := strings.Index(sub, `"node"`)
-	if nodeIdx == -1 {
-		return "20", nil
+	// Strip common range operators: >=, <=, >, <, ^, ~, =
+	for _, op := range []string{">=", "<=", ">", "<", "^", "~", "="} {
+		raw = strings.TrimPrefix(raw, op)
 	}
+	raw = strings.TrimSpace(raw)
 
-	sub = sub[nodeIdx:]
-	// Find the value after "node":
-	colonIdx := strings.Index(sub, ":")
-	if colonIdx == -1 {
+	// Extract the leading numeric part (the major version).
+	end := 0
+	for end < len(raw) && unicode.IsDigit(rune(raw[end])) {
+		end++
+	}
+	if end == 0 {
 		return "20", nil
 	}
-	sub = sub[colonIdx+1:]
-
-	// Find the quoted value
-	startQuote := strings.Index(sub, `"`)
-	if startQuote == -1 {
-		return "20", nil
-	}
-	endQuote := strings.Index(sub[startQuote+1:], `"`)
-	if endQuote == -1 {
-		return "20", nil
-	}
-
-	ver := sub[startQuote+1 : startQuote+1+endQuote]
-	// Clean up version specifiers like ">=20.0.0" -> "20"
-	ver = strings.TrimPrefix(ver, ">=")
-	ver = strings.TrimPrefix(ver, "^")
-	ver = strings.TrimPrefix(ver, "~")
-
-	// Extract major version
-	major := strings.Split(ver, ".")[0]
-	major = strings.Trim(major, " ")
-	if major == "" {
-		return "20", nil
-	}
-	return major, nil
+	return raw[:end], nil
 }
 
 // nodeInstallBase is the base directory for all node installations.

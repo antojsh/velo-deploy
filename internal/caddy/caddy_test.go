@@ -269,8 +269,8 @@ func TestRebuildSharedConfig_PreservesNewlines(t *testing.T) {
 	content, err := os.ReadFile(sharedPath)
 	require.NoError(t, err)
 
-	app1Idx := strings.Index(content, "/app1/")
-	app2Idx := strings.Index(content, "/app2/")
+	app1Idx := strings.Index(string(content), "/app1/")
+	app2Idx := strings.Index(string(content), "/app2/")
 	assert.True(t, app1Idx < app2Idx, "app1 should come before app2")
 }
 
