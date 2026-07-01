@@ -5,7 +5,7 @@ description: Requisitos del sistema, plataformas soportadas e instalador de una 
 
 import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
 
-Velo Deploy corre en un VPS Linux y orquesta tres servicios del sistema: el binario CLI/TUI `velo-deploy`, el daemon de webhooks `velo-watcher`, y el servidor web Caddy.
+Velo Deploy corre en un VPS Linux y orquesta tres servicios del sistema: el binario CLI/TUI `velo-deploy`, el daemon de webhooks `velo-deploy-watcher`, y el servidor web Caddy.
 
 ## Requisitos
 
@@ -32,7 +32,7 @@ Velo Deploy corre en un VPS Linux y orquesta tres servicios del sistema: el bina
 	ssh root@tu-servidor
 	```
 
-2. Ejecutá el instalador. Descarga la última release, valida los checksums y registra la unidad systemd de `velo-watcher`.
+2. Ejecutá el instalador. Descarga la última release, valida los checksums y registra la unidad systemd de `velo-deploy-watcher`.
 
 	```bash
 	curl -sS https://get.velo-deploy.sh | bash
@@ -42,7 +42,7 @@ Velo Deploy corre en un VPS Linux y orquesta tres servicios del sistema: el bina
 
 	```bash
 	velo-deploy version
-	systemctl status velo-watcher
+	systemctl status velo-deploy-watcher
 	```
 
 </Steps>
@@ -70,7 +70,7 @@ Usá el flujo manual cuando quieras pinear una versión específica o correr des
 		```bash
 		git clone https://github.com/antojsh/velo-deploy.git
 		cd velo-deploy
-		go build -o velo-deploy ./cmd/deploy
+		go build -o velo-deploy ./cmd/velo-deploy
 		sudo install -m 0755 velo-deploy /usr/local/bin/velo-deploy
 		sudo ./install.sh
 		```
@@ -86,7 +86,7 @@ Usá el flujo manual cuando quieras pinear una versión específica o correr des
 4. Crea el directorio de configuración en `/etc/velo-deploy/`.
 5. Crea el directorio de apps en `/opt/deploy/apps/`.
 6. Crea el directorio de logs en `/var/log/velo-deploy/`.
-7. Instala e inicia el servicio systemd `velo-watcher` en el puerto `9999`.
+7. Instala e inicia el servicio systemd `velo-deploy-watcher` en el puerto `9999`.
 
 ## Chequeos post-instalación
 
@@ -98,7 +98,7 @@ which velo-deploy
 systemctl status caddy
 
 # El watcher de webhooks está corriendo
-systemctl status velo-watcher
+systemctl status velo-deploy-watcher
 
 # La config por defecto existe
 cat /etc/velo-deploy/config.json

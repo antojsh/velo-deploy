@@ -46,7 +46,7 @@ velo-deploy deploy https://github.com/antojsh/velo-deploy-demo
 │                        Velo Deploy                          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│   GitHub ──webhook──▶ velo-watcher (port 9999)             │
+│   GitHub ──webhook──▶ velo-deploy-watcher (port 9999)      │
 │                              │                              │
 │                              ▼                              │
 │                    ┌─────────────────┐                      │
@@ -101,7 +101,7 @@ Requires Go 1.22 or later.
 ```bash
 git clone https://github.com/antojsh/velo-deploy.git
 cd velo-deploy
-go build -o velo-deploy ./cmd/deploy
+go build -o velo-deploy ./cmd/velo-deploy
 sudo install -m 0755 velo-deploy /usr/local/bin/velo-deploy
 sudo ./install.sh
 ```
@@ -110,7 +110,7 @@ sudo ./install.sh
 
 ```
 .
-├── cmd/deploy/        # Main entry point (CLI / TUI / daemon)
+├── cmd/velo-deploy/   # Main entry point (CLI / TUI / daemon)
 ├── internal/          # Go packages
 │   ├── caddy/         # Caddy vhost generation
 │   ├── config/        # /etc/velo-deploy/config.json

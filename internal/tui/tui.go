@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"deploy/internal/config"
-	"deploy/internal/deploy"
-	"deploy/internal/systemd"
+	"velo-deploy/internal/config"
+	"velo-deploy/internal/deploy"
+	"velo-deploy/internal/systemd"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

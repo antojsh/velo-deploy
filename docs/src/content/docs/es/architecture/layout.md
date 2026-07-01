@@ -14,10 +14,10 @@ Una instalación fresca de Velo Deploy produce el siguiente layout en el servido
 │   └── <app-name>/
 └── logs/                # Logs de deploy por app (rolling)
 
-/var/log/velo-deploy/    # Logs a nivel sistema (velo-watcher, velo-deploy)
+/var/log/velo-deploy/    # Logs a nivel sistema (velo-deploy-watcher, velo-deploy)
 
 /etc/systemd/system/
-├── velo-watcher.service   # Daemon watcher de webhooks
+├── velo-deploy-watcher.service   # Daemon watcher de webhooks
 └── velo-<app>.service     # Unidades systemd por app
 
 /etc/caddy/
@@ -46,7 +46,7 @@ Una instalación fresca de Velo Deploy produce el siguiente layout en el servido
 | --- | --- | --- |
 | `80` | Caddy | HTTP, redirige a HTTPS. |
 | `443` | Caddy | HTTPS, ACME, reverse proxy. |
-| `9999` | velo-watcher | Receptor de webhooks de GitHub. |
+| `9999` | velo-deploy-watcher | Receptor de webhooks de GitHub. |
 | `3000-3999` | velo-<app> | Puertos internos de Node.js. No expuestos externamente. |
 
 ## Árbol de procesos
@@ -54,7 +54,7 @@ Una instalación fresca de Velo Deploy produce el siguiente layout en el servido
 ```
 systemd
 ├── caddy.service
-├── velo-watcher.service
+├── velo-deploy-watcher.service
 └── velo-<app>.service
     └── node /opt/deploy/apps/<app>/index.js
 ```

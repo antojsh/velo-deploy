@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"deploy/internal/config"
-	"deploy/internal/deploy"
-	"deploy/internal/systemd"
-	"deploy/internal/tui"
+	"velo-deploy/internal/config"
+	"velo-deploy/internal/deploy"
+	"velo-deploy/internal/systemd"
+	"velo-deploy/internal/tui"
 )
+
+// version is injected at build time via -ldflags "-X main.version=..."
+var version = "dev"
 
 func main() {
 	cfg, err := config.Load()
@@ -28,9 +31,11 @@ func main() {
 	}
 
 	switch os.Args[1] {
+	case "version", "--version", "-v":
+		fmt.Printf("velo-deploy %s\n", version)
 	case "deploy":
 		if len(os.Args) < 3 {
-			fmt.Println("Usage: deploy deploy <repo-url> [--domain example.com]")
+			fmt.Println("Usage: velo-deploy deploy <repo-url> [--domain example.com]")
 			os.Exit(1)
 		}
 		repoURL := os.Args[2]
@@ -51,7 +56,7 @@ func main() {
 		}
 	case "add":
 		if len(os.Args) < 4 {
-			fmt.Println("Usage: deploy add <name> <directory> [--domain example.com] [--type auto|static|node]")
+			fmt.Println("Usage: velo-deploy add <name> <directory> [--domain example.com] [--type auto|static|node]")
 			os.Exit(1)
 		}
 		appName := os.Args[2]
@@ -75,7 +80,7 @@ func main() {
 		systemd.ListApps(cfg)
 	case "remove":
 		if len(os.Args) < 3 {
-			fmt.Println("Usage: deploy remove <app-name>")
+			fmt.Println("Usage: velo-deploy remove <app-name>")
 			os.Exit(1)
 		}
 		if err := deploy.Remove(cfg, os.Args[2]); err != nil {
@@ -84,7 +89,7 @@ func main() {
 		}
 	case "restart":
 		if len(os.Args) < 3 {
-			fmt.Println("Usage: deploy restart <app-name>")
+			fmt.Println("Usage: velo-deploy restart <app-name>")
 			os.Exit(1)
 		}
 		if err := systemd.RestartApp(os.Args[2]); err != nil {
@@ -93,7 +98,7 @@ func main() {
 		}
 	case "logs":
 		if len(os.Args) < 3 {
-			fmt.Println("Usage: deploy logs <app-name>")
+			fmt.Println("Usage: velo-deploy logs <app-name>")
 			os.Exit(1)
 		}
 		follow := false
@@ -121,7 +126,7 @@ func main() {
 		}
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
-		fmt.Println("Commands: deploy, list, remove, restart, logs, daemon")
+		fmt.Println("Commands: deploy, add, list, remove, restart, logs, daemon, version")
 		os.Exit(1)
 	}
 }

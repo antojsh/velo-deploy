@@ -1,4 +1,4 @@
-module deploy
+module velo-deploy
 
 go 1.22
 

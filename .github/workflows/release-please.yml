@@ -17,6 +17,9 @@ jobs:
   release-please:
     name: Release Please
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Release Please
         uses: googleapis/release-please-action@v4
@@ -26,39 +29,228 @@ jobs:
           manifest-file: .release-please-manifest.json
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Sign release artifacts
-        if: ${{ steps.release.outputs.release_created }}
-        uses: sigstore/cosign-installer@v3
-
-      - name: Build and attach binaries
-        if: ${{ steps.release.outputs.release_created }}
+  check:
+    name: Determine which components were bumped
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    outputs:
+      build_cli: ${{ steps.detect.outputs.build_cli }}
+      build_docs: ${{ steps.detect.outputs.build_docs }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Detect bumped components
+        id: detect
         env:
-          RELEASE_TAG: ${{ steps.release.outputs.tag_name }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
           set -euo pipefail
-          mkdir -p dist
-          for GOOS in linux; do
-            for GOARCH in amd64; do
-              echo "Building velo-deploy for ${GOOS}/${GOARCH}..."
-              GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 \
-                go build -trimpath -ldflags="-s -w -X main.version=${RELEASE_TAG}" \
-                -o "dist/velo-deploy_${GOOS}_${GOARCH}" \
-                ./cmd/deploy
-            done
-          done
-          # Generate checksums
-          (cd dist && sha256sum *.tar.gz velo-deploy_* > SHA256SUMS) || true
-          echo "Build artifacts:"
-          ls -la dist/
+          TAG_VERSION="${TAG#v}"
+          CLI_VERSION=$(jq -r '."."' .release-please-manifest.json)
+          DOCS_VERSION=$(jq -r '.docs' .release-please-manifest.json)
+          if [ "$CLI_VERSION" = "$TAG_VERSION" ]; then
+            echo "build_cli=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build_cli=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "$DOCS_VERSION" = "$TAG_VERSION" ]; then
+            echo "build_docs=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build_docs=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Tag: ${TAG}  CLI: ${CLI_VERSION}  Docs: ${DOCS_VERSION}"
 
-      - name: Upload binaries to release
-        if: ${{ steps.release.outputs.release_created }}
+  binaries:
+    name: Build (${{ matrix.os }}/${{ matrix.arch }})
+    needs: [release-please, check]
+    if: ${{ needs.check.outputs.build_cli == 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            ext: tar.gz
+          - os: linux
+            arch: arm64
+            ext: tar.gz
+          - os: darwin
+            arch: amd64
+            ext: tar.gz
+          - os: darwin
+            arch: arm64
+            ext: tar.gz
+          - os: windows
+            arch: amd64
+            ext: zip
+          - os: windows
+            arch: arm64
+            ext: zip
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Download modules
+        run: go mod download
+
+      - name: Run tests
+        run: go test ./... -race
+
+      - name: Compute version
+        id: version
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          OUT="velo-deploy_${VERSION}_${GOOS}_${GOARCH}"
+          if [ "${GOOS}" = "windows" ]; then
+            OUT="${OUT}.exe"
+          fi
+          go build -trimpath \
+            -ldflags="-s -w -X main.version=${VERSION}" \
+            -o "${OUT}" \
+            ./cmd/velo-deploy
+
+      - name: Package
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          EXT: ${{ matrix.ext }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          ASSET_BASE="velo-deploy_${VERSION}_${GOOS}_${GOARCH}"
+          mkdir -p staging
+          cd staging
+          if [ "${GOOS}" = "windows" ]; then
+            cp ../"${ASSET_BASE}.exe" velo-deploy.exe
+            [ -f ../README.md ] && cp ../README.md .
+            [ -f ../LICENSE ] && cp ../LICENSE .
+            zip -r "../${ASSET_BASE}.zip" . >/dev/null
+          else
+            cp ../"${ASSET_BASE}" velo-deploy
+            [ -f ../README.md ] && cp ../README.md .
+            [ -f ../LICENSE ] && cp ../LICENSE .
+            tar -czf "../${ASSET_BASE}.tar.gz" .
+          fi
+          cd ..
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: velo-deploy-binaries
+          path: |
+            velo-deploy_${{ steps.version.outputs.version }}_${{ matrix.os }}_${{ matrix.arch }}.${{ matrix.ext }}
+          if-no-files-found: error
+          retention-days: 14
+
+  docs:
+    name: Build docs site
+    needs: [release-please, check]
+    if: ${{ needs.check.outputs.build_docs == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: docs/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: docs
+        run: pnpm install --frozen-lockfile
+
+      - name: Build site
+        working-directory: docs
+        run: pnpm build
+
+      - name: Zip site
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          cd docs
+          zip -r "../velo-deploy-docs-site_${TAG#v}.zip" dist >/dev/null
+          cd ..
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: velo-deploy-docs-site
+          path: velo-deploy-docs-site_${{ needs.release-please.outputs.tag_name }}.zip
+          if-no-files-found: error
+          retention-days: 14
+
+  attach:
+    name: Attach artifacts to release
+    needs: [release-please, check, binaries, docs]
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download binaries
+        if: ${{ needs.check.outputs.build_cli == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: velo-deploy-binaries
+          path: dist
+          merge-multiple: true
+
+      - name: Download docs site
+        if: ${{ needs.check.outputs.build_docs == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: velo-deploy-docs-site
+          path: site
+
+      - name: Generate SHA256SUMS
+        if: ${{ needs.check.outputs.build_cli == 'true' }}
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          # Only hash archives that were actually produced this run.
+          find . -maxdepth 1 -type f \( -name '*.tar.gz' -o -name '*.zip' \) -print0 \
+            | xargs -0 sha256sum > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Show artifacts
+        run: |
+          echo '--- dist ---'
+          ls -la dist/ 2>/dev/null || echo '(empty)'
+          echo '--- site ---'
+          ls -la site/ 2>/dev/null || echo '(empty)'
+
+      - name: Upload to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.release.outputs.tag_name }}
-          name: ${{ steps.release.outputs.tag_name }}
-          body: ${{ steps.release.outputs.notes }}
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
           files: |
-            dist/velo-deploy_*
-            SHA256SUMS
+            dist/*
+            site/*
           fail_on_unmatched_files: false
+          token: ${{ secrets.GITHUB_TOKEN }}

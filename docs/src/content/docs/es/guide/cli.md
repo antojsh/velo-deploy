@@ -133,7 +133,7 @@ velo-deploy remove <name> [flags]
 
 ### `velo-deploy daemon`
 
-Inicia el daemon de webhooks en foreground. En producción, usá la unidad systemd `velo-watcher` instalada por `install.sh`.
+Inicia el daemon de webhooks en foreground. En producción, usá la unidad systemd `velo-deploy-watcher` instalada por `install.sh`.
 
 ```bash
 velo-deploy daemon --port 9999

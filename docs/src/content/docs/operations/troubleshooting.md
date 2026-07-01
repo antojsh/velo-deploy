@@ -35,8 +35,8 @@ The journal usually shows a stack trace. Most common causes:
 ## Webhook not firing
 
 ```bash
-sudo systemctl status velo-watcher
-sudo journalctl -u velo-watcher -f
+sudo systemctl status velo-deploy-watcher
+sudo journalctl -u velo-deploy-watcher -f
 ```
 
 Test the endpoint locally:

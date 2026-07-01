@@ -37,7 +37,7 @@ By participating, you agree to uphold our [Code of Conduct](CODE_OF_CONDUCT.md).
 git clone https://github.com/antojsh/velo-deploy.git
 cd velo-deploy
 go mod download
-go build -o velo-deploy ./cmd/deploy
+go build -o velo-deploy ./cmd/velo-deploy
 ```
 
 ### Run the tests

@@ -79,8 +79,8 @@ body:
     attributes:
       label: Relevant logs
       description: |
-        Paste the output of `velo-deploy --version`, `journalctl -u velo-watcher -n 200 --no-pager`,
-        and `journalctl -u velo-<app> -n 200 --no-pager` if relevant. Wrap in triple backticks.
+        Paste the output of `velo-deploy --version`, `journalctl -u velo-deploy-watcher -n 200 --no-pager`,
+        and `journalctl -u deploy-<app> -n 200 --no-pager` if relevant. Wrap in triple backticks.
     validations:
       required: false
 

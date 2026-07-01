@@ -8,7 +8,7 @@ import { Aside } from '@astrojs/starlight/components';
 There are two things to keep up to date:
 
 1. The `velo-deploy` binary (CLI, TUI, embedded assets).
-2. The `velo-watcher` service (same binary, different entry point).
+2. The `velo-deploy-watcher` service (same binary, different entry point).
 
 ## Upgrade in place
 
@@ -22,14 +22,14 @@ This:
 
 - Backs up the existing binary to `/usr/local/bin/velo-deploy.bak`.
 - Installs the new binary to `/usr/local/bin/velo-deploy`.
-- Reloads the `velo-watcher` systemd unit.
+- Reloads the `velo-deploy-watcher` systemd unit.
 - Leaves `/etc/velo-deploy/config.json` and `/opt/deploy/apps/` untouched.
 
 To roll back:
 
 ```bash
 sudo mv /usr/local/bin/velo-deploy.bak /usr/local/bin/velo-deploy
-sudo systemctl restart velo-watcher
+sudo systemctl restart velo-deploy-watcher
 ```
 
 ## Pin a specific version
@@ -41,7 +41,7 @@ VER=v0.4.0
 curl -sSLo velo-deploy.tar.gz \
   "https://github.com/antojsh/velo-deploy/releases/download/${VER}/velo-deploy_${VER#v}_linux_amd64.tar.gz"
 sudo install -m 0755 velo-deploy /usr/local/bin/velo-deploy
-sudo systemctl restart velo-watcher
+sudo systemctl restart velo-deploy-watcher
 velo-deploy version
 ```
 
@@ -77,7 +77,7 @@ This downloads the latest Caddy binary, verifies the signature, and restarts the
 
 ```bash
 velo-deploy version
-systemctl status velo-watcher
+systemctl status velo-deploy-watcher
 systemctl status caddy
 sudo caddy validate --config /etc/caddy/Caddyfile
 velo-deploy list

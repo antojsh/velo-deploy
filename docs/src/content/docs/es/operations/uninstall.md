@@ -16,8 +16,8 @@ Esto detiene cada app Node, borra cada unidad systemd, remueve cada vhost de Cad
 ## Paso 2: detener el watcher
 
 ```bash
-sudo systemctl disable --now velo-watcher
-sudo rm /etc/systemd/system/velo-watcher.service
+sudo systemctl disable --now velo-deploy-watcher
+sudo rm /etc/systemd/system/velo-deploy-watcher.service
 sudo systemctl daemon-reload
 ```
 
@@ -63,8 +63,8 @@ Si no necesitás backupear nada:
 
 ```bash
 velo-deploy list --quiet | xargs -I {} velo-deploy remove {} --purge
-sudo systemctl disable --now velo-watcher
-sudo rm -f /etc/systemd/system/velo-watcher.service
+sudo systemctl disable --now velo-deploy-watcher
+sudo rm -f /etc/systemd/system/velo-deploy-watcher.service
 sudo systemctl daemon-reload
 sudo rm -f /usr/local/bin/velo-deploy
 sudo rm -rf /etc/velo-deploy /opt/deploy /var/log/velo-deploy

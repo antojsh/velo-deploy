@@ -1,0 +1,116 @@
+name: Build Binaries (validation)
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }}/${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            ext: tar.gz
+          - os: linux
+            arch: arm64
+            ext: tar.gz
+          - os: darwin
+            arch: amd64
+            ext: tar.gz
+          - os: darwin
+            arch: arm64
+            ext: tar.gz
+          - os: windows
+            arch: amd64
+            ext: zip
+          - os: windows
+            arch: arm64
+            ext: zip
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Download modules
+        run: go mod download
+
+      - name: Run tests
+        run: go test ./... -race
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ github.event.pull_request.base.ref }}" ]; then
+            VERSION="dev-pr${{ github.event.pull_request.number }}"
+          elif [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            VERSION="dev"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          OUT="velo-deploy_${VERSION}_${GOOS}_${GOARCH}"
+          if [ "${GOOS}" = "windows" ]; then
+            OUT="${OUT}.exe"
+          fi
+          go build -trimpath \
+            -ldflags="-s -w -X main.version=${VERSION}" \
+            -o "${OUT}" \
+            ./cmd/velo-deploy
+
+      - name: Package
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          EXT: ${{ matrix.ext }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          ASSET_BASE="velo-deploy_${VERSION}_${GOOS}_${GOARCH}"
+          mkdir -p staging
+          cd staging
+          if [ "${GOOS}" = "windows" ]; then
+            cp ../"${ASSET_BASE}.exe" velo-deploy.exe
+            [ -f ../README.md ] && cp ../README.md .
+            [ -f ../LICENSE ] && cp ../LICENSE .
+            zip -r "../${ASSET_BASE}.zip" . >/dev/null
+          else
+            cp ../"${ASSET_BASE}" velo-deploy
+            [ -f ../README.md ] && cp ../README.md .
+            [ -f ../LICENSE ] && cp ../LICENSE .
+            tar -czf "../${ASSET_BASE}.tar.gz" .
+          fi
+          cd ..
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: velo-deploy-binaries
+          path: |
+            velo-deploy_${{ steps.version.outputs.version }}_${{ matrix.os }}_${{ matrix.arch }}.${{ matrix.ext }}
+          if-no-files-found: error
+          retention-days: 14

@@ -133,7 +133,7 @@ velo-deploy remove <name> [flags]
 
 ### `velo-deploy daemon`
 
-Start the webhook daemon in the foreground. In production, use the `velo-watcher` systemd unit installed by `install.sh`.
+Start the webhook daemon in the foreground. In production, use the `velo-deploy-watcher` systemd unit installed by `install.sh`.
 
 ```bash
 velo-deploy daemon --port 9999

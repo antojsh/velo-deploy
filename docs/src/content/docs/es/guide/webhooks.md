@@ -5,12 +5,12 @@ description: Auto-deploy en push a main con webhooks de GitHub.
 
 import { Steps, Aside } from '@astrojs/starlight/components';
 
-El daemon de webhooks (`velo-watcher`) escucha eventos push en el puerto `9999` y dispara un redeploy de la app que matchea.
+El daemon de webhooks (`velo-deploy-watcher`) escucha eventos push en el puerto `9999` y dispara un redeploy de la app que matchea.
 
 ## Arquitectura
 
 ```
-GitHub ──webhook──▶ velo-watcher (puerto 9999)
+GitHub ──webhook──▶ velo-deploy-watcher (puerto 9999)
                             │
                             ▼
                   git pull → npm ci → npm run build
@@ -24,7 +24,7 @@ GitHub ──webhook──▶ velo-watcher (puerto 9999)
 Si usaste el instalador de una línea, el daemon ya está corriendo bajo systemd:
 
 ```bash
-sudo systemctl status velo-watcher
+sudo systemctl status velo-deploy-watcher
 ```
 
 Para iniciarlo a mano (para testing o en un sistema sin systemd):
@@ -75,13 +75,13 @@ Desde tu laptop:
 curl -X POST http://<ip-servidor>:9999/webhook
 ```
 
-Deberías ver una respuesta `200` y, en `journalctl -u velo-watcher -f`, una línea de log sobre el request.
+Deberías ver una respuesta `200` y, en `journalctl -u velo-deploy-watcher -f`, una línea de log sobre el request.
 
 Hacé push de un cambio chico a `main` y mirá cómo aterriza:
 
 ```bash
 # En el servidor
-journalctl -u velo-watcher -f
+journalctl -u velo-deploy-watcher -f
 velo-deploy logs my-api -f
 ```
 
@@ -96,7 +96,7 @@ velo-deploy logs my-api -f
 
 ### Validar el HMAC
 
-Una versión futura de `velo-watcher` validará el header `X-Hub-Signature-256` out of the box. Hasta entonces, el patrón recomendado es poner Caddy adelante:
+Una versión futura de `velo-deploy-watcher` validará el header `X-Hub-Signature-256` out of the box. Hasta entonces, el patrón recomendado es poner Caddy adelante:
 
 ```nginx
 webhook.example.com {

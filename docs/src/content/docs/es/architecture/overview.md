@@ -10,7 +10,7 @@ Velo Deploy es intencionalmente chico. Tres componentes móviles, un solo archiv
 │                        Velo Deploy                          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│   GitHub ──webhook──▶ deploy-watcher (puerto 9999)         │
+│   GitHub ──webhook──▶ velo-deploy-watcher (puerto 9999)    │
 │                              │                              │
 │                              ▼                              │
 │                    ┌─────────────────┐                      │
@@ -46,9 +46,9 @@ Un único binario estático que trae la CLI, la TUI y los scripts de install/uni
 
 La CLI habla con systemd a través de `systemctl` y con Caddy escribiendo archivos en `/etc/caddy/conf.d/`.
 
-### `velo-watcher` (binario Go, larga duración)
+### `velo-deploy-watcher` (binario Go, larga duración)
 
-Un segundo binario, también escrito en Go, que escucha en el puerto `9999` entregas de webhooks de GitHub. Es el único proceso de larga duración que Velo Deploy agrega al sistema. Está registrado como la unidad systemd `velo-watcher.service`.
+Un segundo binario, también escrito en Go, que escucha en el puerto `9999` entregas de webhooks de GitHub. Es el único proceso de larga duración que Velo Deploy agrega al sistema. Está registrado como la unidad systemd `velo-deploy-watcher.service`.
 
 ### systemd
 
@@ -66,7 +66,7 @@ Gestor de versiones de Node.js instalado en `/opt/nvm`. Velo instala la versión
 
 1. **Deploy** — la CLI clona el repo, instala dependencias, corre el build, escribe una unidad systemd, escribe un vhost de Caddy y registra la app en `/etc/velo-deploy/config.json`.
 2. **Runtime** — Caddy termina TLS, hace reverse-proxy a los requests Node.js, o sirve archivos estáticos directo.
-3. **Webhook** — `velo-watcher` recibe un evento push, identifica la app que matchea y re-corre los pasos de deploy para esa app.
+3. **Webhook** — `velo-deploy-watcher` recibe un evento push, identifica la app que matchea y re-corre los pasos de deploy para esa app.
 4. **Tear-down** — `velo-deploy remove` borra la unidad systemd, el vhost de Caddy, la entrada en config y (opcionalmente) el directorio de código.
 
 ## ¿Por qué no Docker?

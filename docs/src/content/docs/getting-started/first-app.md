@@ -101,7 +101,7 @@ Caddy will request a Let's Encrypt certificate the first time the domain resolve
 On the server:
 
 ```bash
-sudo systemctl enable --now velo-watcher
+sudo systemctl enable --now velo-deploy-watcher
 ```
 
 In your GitHub repo, add a webhook with:
