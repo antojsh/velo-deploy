@@ -26,7 +26,7 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Release Please
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v5
         id: release
         with:
           config-file: release-please-config.json
@@ -43,7 +43,7 @@ jobs:
       build_docs: ${{ steps.detect.outputs.build_docs }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Detect bumped components
         id: detect
         env:
@@ -94,10 +94,10 @@ jobs:
             ext: zip
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.22'
           cache: true
@@ -160,7 +160,7 @@ jobs:
           cd ..
 
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: velo-deploy-binaries
           path: |
@@ -175,15 +175,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 9
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: pnpm
@@ -207,7 +207,7 @@ jobs:
           cd ..
 
       - name: Upload docs artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: velo-deploy-docs-site
           path: velo-deploy-docs-site_${{ needs.release-please.outputs.tag_name }}.zip
@@ -222,7 +222,7 @@ jobs:
     steps:
       - name: Download binaries
         if: ${{ needs.check.outputs.build_cli == 'true' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: velo-deploy-binaries
           path: dist
@@ -230,7 +230,7 @@ jobs:
 
       - name: Download docs site
         if: ${{ needs.check.outputs.build_docs == 'true' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: velo-deploy-docs-site
           path: site
@@ -253,7 +253,7 @@ jobs:
           ls -la site/ 2>/dev/null || echo '(empty)'
 
       - name: Upload to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.release-please.outputs.tag_name }}
           files: |
