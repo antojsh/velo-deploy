@@ -48,6 +48,7 @@ velo-deploy_0.2.0_darwin_amd64.tar.gz
 velo-deploy_0.2.0_darwin_arm64.tar.gz
 velo-deploy_0.2.0_windows_amd64.zip
 velo-deploy_0.2.0_windows_arm64.zip
+velo-deploy-install.sh
 SHA256SUMS
 ```
 
@@ -57,17 +58,23 @@ If the docs were also bumped:
 velo-deploy-docs-site_0.2.0.zip
 ```
 
-A docs-only release attaches just the docs zip (no binaries, no SHA256SUMS).
+A docs-only release attaches just the docs zip (no binaries, no installer, no SHA256SUMS).
 
 ## How the oneliner installer finds the binary
 
-`install.sh` is the user-facing installer (`curl -sS https://get.velo-deploy.sh | bash`).
+`install.sh` is the user-facing installer. The `release-please` workflow copies it into the `dist/` staging directory as `velo-deploy-install.sh` and uploads it to the GitHub release alongside the binaries, so the canonical one-liner is:
 
-When invoked without a specific version:
+```bash
+curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
+```
 
-1. It calls `https://api.github.com/repos/antojsh/velo-deploy/releases?per_page=20` and walks the list.
-2. It picks the **most recent release that has a `velo-deploy_<os>_<arch>.tar.gz` asset**. This automatically skips docs-only releases.
-3. It downloads the matching asset + `SHA256SUMS`, verifies the checksum, and extracts the binary to `/usr/local/bin/velo-deploy`.
+The `/releases/latest/download/<asset>` URL is a GitHub redirect that always resolves to the asset of the most recent release. The installer is only attached to CLI releases (gated on `build_cli == 'true'`), so docs-only releases do not ship an installer.
+
+When invoked without a specific version, the script:
+
+1. Calls `https://api.github.com/repos/antojsh/velo-deploy/releases?per_page=20` and walks the list.
+2. Picks the **most recent release that has a `velo-deploy_<os>_<arch>.tar.gz` asset**. This automatically skips docs-only releases.
+3. Downloads the matching asset + `SHA256SUMS`, verifies the checksum, and extracts the binary to `/usr/local/bin/velo-deploy`.
 
 Users can pin a specific version:
 

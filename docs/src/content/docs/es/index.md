@@ -22,7 +22,7 @@ De un VPS Ubuntu nuevo a una web con HTTPS en vivo en menos de un minuto. Sin `d
 
 ```bash
 # 1. Instalá una vez
-curl -sS https://get.velo-deploy.sh | bash
+curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
 
 # 2. Deployá cualquier repo
 velo-deploy deploy https://github.com/tu/repo

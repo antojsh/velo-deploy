@@ -18,7 +18,7 @@ Velo Deploy uses **systemd** for process management and **Caddy** for automatic 
 ## One-liner install
 
 ```bash
-curl -sS https://get.velo-deploy.sh | bash
+curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
 ```
 
 Then deploy your first app:

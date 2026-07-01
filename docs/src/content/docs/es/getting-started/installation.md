@@ -35,7 +35,7 @@ Velo Deploy corre en un VPS Linux y orquesta tres servicios del sistema: el bina
 2. Ejecutá el instalador. Descarga la última release, valida los checksums y registra la unidad systemd de `velo-deploy-watcher`.
 
 	```bash
-	curl -sS https://get.velo-deploy.sh | bash
+	curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
 	```
 
 3. Verificá la instalación.

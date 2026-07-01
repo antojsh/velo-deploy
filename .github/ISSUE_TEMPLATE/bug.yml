@@ -68,7 +68,7 @@ body:
       description: Numbered steps we can follow to reproduce the issue.
       placeholder: |
         1. SSH into a fresh Ubuntu 22.04 VPS
-        2. Run `curl -sS https://get.velo-deploy.sh | bash`
+        2. Run `curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash`
         3. Run `velo-deploy deploy https://github.com/foo/bar`
         4. See error
     validations:

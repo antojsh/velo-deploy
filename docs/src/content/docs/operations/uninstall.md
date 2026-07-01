@@ -74,5 +74,5 @@ sudo rm -rf /etc/caddy /opt/nvm
 Re-run the install script with the `--dry-run` flag (if you have it) to verify the system is clean:
 
 ```bash
-curl -sS https://get.velo-deploy.sh | bash -s -- --check
+curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash -s -- --check
 ```
