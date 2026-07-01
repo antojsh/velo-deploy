@@ -106,7 +106,9 @@ func TestDetectVersionFromPackageJSON_NoPackageJSON(t *testing.T) {
 
 func TestDetectVersionFromPackageJSON_MalformedNodeValue(t *testing.T) {
 	tmpDir := t.TempDir()
-	pkgJSON := `{"name":"test","engines":{"node":":}}`
+	// "abc" is a valid JSON value but not a valid Node major version.
+	// DetectVersionFromPackageJSON should fall back to the default.
+	pkgJSON := `{"name":"test","engines":{"node":"abc"}}`
 	err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(pkgJSON), 0644)
 	require.NoError(t, err)
 

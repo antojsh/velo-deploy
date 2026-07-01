@@ -398,8 +398,9 @@ func rebuildSharedCaddyConfig(cfg *config.Config) error {
 }
 
 func deriveAppName(repoURL string) string {
-	// Strip .git suffix and get last path component
+	// Strip .git suffix and any trailing slash, then take the last path component.
 	repoURL = strings.TrimSuffix(repoURL, ".git")
+	repoURL = strings.TrimRight(repoURL, "/")
 	parts := strings.Split(repoURL, "/")
 	if len(parts) > 0 {
 		name := parts[len(parts)-1]

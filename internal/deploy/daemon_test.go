@@ -22,7 +22,7 @@ func TestRunDaemon_WebhookHandler(t *testing.T) {
 	}
 	_ = cfg
 
-	req, err := http.NewRequest("GET", "/webhook", nil)
+	req, err := http.NewRequest("POST", "/webhook", nil)
 	require.NoError(t, err)
 
 	rr := httptest.NewRecorder()
