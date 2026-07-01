@@ -44,10 +44,11 @@ if [ -f /etc/hosts ]; then
 fi
 
 # 4. Remove deploy users
-for u in $(cut -d: -f1 /etc/passwd | grep '^deploy-'); do
+while IFS=: read -r u _; do
   log_info "Removing user $u..."
   userdel -r "$u" 2>/dev/null || true
-done
+done < <(cut -d: -f1 /etc/passwd | grep '^deploy-')
+[ -n "${u:-}" ] || true  # keep shellcheck quiet about the read variable
 
 # 5. Remove directories
 rm -rf /opt/deploy

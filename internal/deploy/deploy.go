@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"deploy/internal/caddy"
-	"deploy/internal/config"
-	"deploy/internal/hosts"
-	deploynode "deploy/internal/node"
-	"deploy/internal/systemd"
+	"velo-deploy/internal/caddy"
+	"velo-deploy/internal/config"
+	"velo-deploy/internal/hosts"
+	deploynode "velo-deploy/internal/node"
+	"velo-deploy/internal/systemd"
 )
 
 // Deploy performs a full deployment from a git repository.

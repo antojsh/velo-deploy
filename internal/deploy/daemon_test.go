@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"deploy/internal/config"
+	"velo-deploy/internal/config"
 )
 
 func TestRunDaemon_WebhookHandler(t *testing.T) {

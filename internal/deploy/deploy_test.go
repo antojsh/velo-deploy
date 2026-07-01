@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"deploy/internal/caddy"
-	"deploy/internal/config"
+	"velo-deploy/internal/caddy"
+	"velo-deploy/internal/config"
 )
 
 func TestDeriveAppName(t *testing.T) {

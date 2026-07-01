@@ -28,6 +28,7 @@ fi
 
 # --- 1. Detect distro ---
 if [ -f /etc/os-release ]; then
+  # shellcheck source=/etc/os-release
   . /etc/os-release
   DISTRO="${ID,,}"
 else
@@ -69,11 +70,13 @@ if [ ! -s "$NVM_DIR/nvm.sh" ]; then
   log_info "Installing nvm to /opt/nvm..."
   mkdir -p "$NVM_DIR"
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | NVM_DIR="$NVM_DIR" bash >/dev/null 2>&1
+  # shellcheck source=/opt/nvm/nvm.sh
   [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
   chmod -R a+rX "$NVM_DIR"
   log_info "nvm installed at /opt/nvm."
 else
   log_info "nvm already installed at /opt/nvm."
+  # shellcheck source=/opt/nvm/nvm.sh
   [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
 fi
 
