@@ -63,6 +63,7 @@ jobs:
             docs/src/content/**/*.md
             !CHANGELOG.md
             !docs/CHANGELOG.md
+            !SECURITY.md
           config: .markdownlint.jsonc
 
   shellcheck:
