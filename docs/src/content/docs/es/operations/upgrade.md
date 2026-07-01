@@ -15,7 +15,7 @@ Hay dos cosas que mantener al día:
 La forma recomendada de upgradear es re-correr el instalador de una línea. Es idempotente — correrlo en una instalación existente upgraddea el binario y la unidad del watcher sin tocar tus apps.
 
 ```bash
-curl -sS https://get.velo-deploy.sh | bash
+curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
 ```
 
 Esto:

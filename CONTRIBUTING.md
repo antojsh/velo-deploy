@@ -217,7 +217,7 @@ Releases are fully automated via [release-please](https://github.com/googleapis/
 2. release-please opens a release PR with version bump, `CHANGELOG.md` update, and GitHub release notes.
 3. A maintainer reviews and merges the release PR.
 4. release-please creates a Git tag, builds the binaries, signs them with cosign, and publishes a GitHub release.
-5. `get.velo-deploy.sh` picks up the new tag automatically.
+5. The `velo-deploy-install.sh` script is attached to the release as an asset, so `curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash` always installs the latest version.
 
 You do **not** need to bump the version or edit the CHANGELOG manually.
 

@@ -22,7 +22,7 @@ From a fresh Ubuntu VPS to a live HTTPS site in under a minute. No `docker-compo
 
 ```bash
 # 1. Install once
-curl -sS https://get.velo-deploy.sh | bash
+curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
 
 # 2. Deploy any repo
 velo-deploy deploy https://github.com/your/repo

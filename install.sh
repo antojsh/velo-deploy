@@ -4,7 +4,7 @@ set -e
 
 # ==========================================
 # velo-deploy installer
-# curl -sS https://get.velo-deploy.sh | bash
+# curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
 # ==========================================
 #
 # Env vars:

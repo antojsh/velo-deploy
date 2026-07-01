@@ -35,7 +35,7 @@ Velo Deploy runs on a Linux VPS and orchestrates three system services: the `vel
 2. Run the installer. It downloads the latest release, validates checksums, and registers the `velo-deploy-watcher` systemd unit.
 
 	```bash
-	curl -sS https://get.velo-deploy.sh | bash
+	curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
 	```
 
 3. Verify the install.

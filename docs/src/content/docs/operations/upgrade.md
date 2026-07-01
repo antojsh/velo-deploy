@@ -15,7 +15,7 @@ There are two things to keep up to date:
 The recommended way to upgrade is to re-run the one-liner installer. It is idempotent — running it on an existing install upgrades the binary and the watcher unit without touching your apps.
 
 ```bash
-curl -sS https://get.velo-deploy.sh | bash
+curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
 ```
 
 This:

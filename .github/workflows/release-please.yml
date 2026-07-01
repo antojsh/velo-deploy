@@ -228,6 +228,14 @@ jobs:
           path: dist
           merge-multiple: true
 
+      - name: Stage install script
+        if: ${{ needs.check.outputs.build_cli == 'true' }}
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          cp ../install.sh velo-deploy-install.sh
+          ls -la
+
       - name: Download docs site
         if: ${{ needs.check.outputs.build_docs == 'true' }}
         uses: actions/download-artifact@v8
