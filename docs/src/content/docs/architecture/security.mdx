@@ -1,4 +1,4 @@
----
+﻿---
 title: Security
 description: How Velo isolates apps and what you can rely on.
 ---
@@ -82,11 +82,11 @@ The app **cannot**:
 
 ## Network isolation
 
-Caddy is the only process listening on a public port. Node.js apps bind to `localhost` only — they are not reachable directly from the network. All traffic flows through the Caddy reverse proxy, which terminates TLS and forwards to the right upstream.
+Caddy is the only process listening on a public port. Node.js apps bind to `localhost` only â€” they are not reachable directly from the network. All traffic flows through the Caddy reverse proxy, which terminates TLS and forwards to the right upstream.
 
 ## Secrets
 
-<Aside type="warning" title="Do not commit secrets to Git">
+<Aside type="danger" title="Do not commit secrets to Git">
 	Velo Deploy does not manage secrets. Pass them as environment variables in the systemd unit, never as part of the repository.
 </Aside>
 
