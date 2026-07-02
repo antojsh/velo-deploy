@@ -143,6 +143,29 @@ func TestRebuildSharedConfig_MixedRoutes(t *testing.T) {
 	assert.Contains(t, string(content), "file_server")
 }
 
+func TestRebuildSharedConfig_GroupsRoutesByDomainAndPath(t *testing.T) {
+	tmpDir := t.TempDir()
+	SetConfDir(tmpDir)
+	defer SetConfDir("/etc/caddy/conf.d")
+
+	routes := []Route{
+		{AppName: "api", Domain: "example.com", Path: "/api", Type: "node", Upstream: "api.local:3000"},
+		{AppName: "admin", Domain: "example.com", Path: "/admin", Type: "static", RootDir: "/opt/deploy/apps/admin/dist"},
+	}
+
+	err := RebuildSharedConfig(routes)
+
+	assert.NoError(t, err)
+	content, err := os.ReadFile(filepath.Join(tmpDir, "_shared.conf"))
+	assert.NoError(t, err)
+	conf := string(content)
+	assert.Contains(t, conf, "example.com {")
+	assert.Contains(t, conf, "handle_path /api/*")
+	assert.Contains(t, conf, "reverse_proxy api.local:3000")
+	assert.Contains(t, conf, "handle_path /admin/*")
+	assert.Contains(t, conf, "root * /opt/deploy/apps/admin/dist")
+}
+
 func TestRebuildSharedConfig_EmptyRoutes(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalConfDir := confDir

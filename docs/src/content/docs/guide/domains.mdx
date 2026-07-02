@@ -30,6 +30,15 @@ DNS propagation usually takes a few minutes; `dig +short api.example.com @1.1.1.
 velo-deploy deploy https://github.com/user/api --domain api.example.com
 ```
 
+You can also mount several apps under one domain by giving each app a path:
+
+```bash
+velo-deploy deploy https://github.com/user/api --domain example.com --path /api
+velo-deploy deploy https://github.com/user/admin --domain example.com --path /admin
+```
+
+APIs usually work well behind a path prefix. Frontend apps may need their framework base path set to the same value, for example `/admin`.
+
 Or attach a domain to an existing app:
 
 ```bash

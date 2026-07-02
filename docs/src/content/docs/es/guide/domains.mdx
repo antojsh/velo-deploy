@@ -30,6 +30,15 @@ La propagación DNS usualmente tarda unos minutos; `dig +short api.example.com @
 velo-deploy deploy https://github.com/user/api --domain api.example.com
 ```
 
+Tambien podes montar varias apps bajo un mismo dominio usando un path por app:
+
+```bash
+velo-deploy deploy https://github.com/user/api --domain example.com --path /api
+velo-deploy deploy https://github.com/user/admin --domain example.com --path /admin
+```
+
+Las APIs suelen funcionar bien detras de un prefijo de path. Los frontends pueden necesitar configurar el base path del framework con el mismo valor, por ejemplo `/admin`.
+
 O agregale un dominio a una app existente:
 
 ```bash

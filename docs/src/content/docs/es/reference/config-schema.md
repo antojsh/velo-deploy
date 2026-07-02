@@ -25,6 +25,7 @@ type AppConfig = {
   name: string;
   type: 'node' | 'static';
   domain?: string;
+  path?: string;
   alias?: string;
 } & ({
   type: 'node';
@@ -51,6 +52,7 @@ type AppConfig = {
 | `daemon_port` | `9999` |
 | `nvm_dir` | `/opt/nvm` |
 | `apps.<name>.alias` | `<name>.local` |
+| `apps.<name>.path` | `/` con dominio, `/<name>` sin dominio |
 | `apps.<name>.branch` | branch default del repo |
 | `apps.<name>.node_version` | `24` |
 | `apps.<name>.port` | primer libre en `3000-3999` |
@@ -62,6 +64,7 @@ type AppConfig = {
 - `name` debe ser único entre todas las `apps`.
 - `port` debe ser un entero en `3000-3999` para apps Node.js.
 - `domain` debe ser un nombre DNS válido (sin scheme, sin path).
+- `path` debe ser un path de URL como `/api` o `/admin`.
 - `alias` debe ser un nombre DNS válido.
 - `node_version` debe ser uno de `16`, `18`, `20`, `22`, `24`.
 - `entry_point` debe ser un path relativo adentro del dir de la app.
