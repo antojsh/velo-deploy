@@ -31,33 +31,23 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Getting Started',
-          autogenerate: {
-            directory: 'getting-started',
-          },
+          items: [{ autogenerate: { directory: 'getting-started' } }],
         },
         {
           label: 'Guides',
-          autogenerate: {
-            directory: 'guide',
-          },
+          items: [{ autogenerate: { directory: 'guide' } }],
         },
         {
           label: 'Architecture',
-          autogenerate: {
-            directory: 'architecture',
-          },
+          items: [{ autogenerate: { directory: 'architecture' } }],
         },
         {
           label: 'Reference',
-          autogenerate: {
-            directory: 'reference',
-          },
+          items: [{ autogenerate: { directory: 'reference' } }],
         },
         {
           label: 'Operations',
-          autogenerate: {
-            directory: 'operations',
-          },
+          items: [{ autogenerate: { directory: 'operations' } }],
         },
       ],
       defaultLocale: 'root',
