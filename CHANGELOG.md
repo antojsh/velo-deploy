@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This file is automatically updated by [release-please](https://github.com/googleapis/release-please) on every release. Do not edit it manually — write a [Conventional Commit](https://www.conventionalcommits.org/) instead and the bot will roll it up.
 
+## 0.2.2 (2026-07-02)
+
+## What's Changed
+* fix(ci): bump docs build Node to 24 in release pipeline by @antojsh in https://github.com/antojsh/velo-deploy/pull/14
+* Fix/release please node version by @antojsh in https://github.com/antojsh/velo-deploy/pull/15
+* Fix/release please node version by @antojsh in https://github.com/antojsh/velo-deploy/pull/16
+* fix: use single product release by @antojsh in https://github.com/antojsh/velo-deploy/pull/17
+* Fix/single product release by @antojsh in https://github.com/antojsh/velo-deploy/pull/18
+
+
+**Full Changelog**: https://github.com/antojsh/velo-deploy/compare/v0.2.1...v0.2.2
+
 ## 0.2.1 (2026-07-01)
 
 ## What's Changed
