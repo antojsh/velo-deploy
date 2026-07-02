@@ -210,9 +210,6 @@ func DeployWithOptions(cfg *config.Config, repoURL, domain, alias string, opts O
 	}
 
 	// 14. Configure Caddy
-	upstream := fmt.Sprintf("%s:%d", alias, port)
-
-	// Always rebuild shared catch-all for apps without domains
 	if err := rebuildSharedCaddyConfig(cfg); err != nil {
 		return fmt.Errorf("failed to rebuild shared Caddy config: %w", err)
 	}
@@ -313,11 +310,6 @@ func RegisterWithOptions(cfg *config.Config, appName, appDir, domain, alias, app
 			fmt.Printf("Warning: could not add hosts alias: %v\n", err)
 		}
 
-		rootDir := appDir
-		if outputDir != "." {
-			rootDir = filepath.Join(appDir, outputDir)
-		}
-
 		meta = &config.AppMeta{
 			Name:      appName,
 			Type:      config.AppTypeStatic,
@@ -410,8 +402,6 @@ func RegisterWithOptions(cfg *config.Config, appName, appDir, domain, alias, app
 		BuildCommand: DefaultBuildCommand,
 		StartCommand: DefaultStartCommand,
 	}
-
-	upstream := fmt.Sprintf("%s:%d", alias, port)
 
 	cfg.Apps[appName] = meta
 	if err := rebuildSharedCaddyConfig(cfg); err != nil {
