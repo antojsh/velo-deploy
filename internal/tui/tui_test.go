@@ -205,7 +205,10 @@ func TestRenderViewsDoNotPanic(t *testing.T) {
     assert.Contains(t, m.renderAddForm(), "ADD EXISTING APP")
 
     m.view = viewConfirm
-    assert.Contains(t, m.renderConfirm(), "CONFIRM DELETE")
+    confirm := m.renderConfirm()
+    assert.Contains(t, confirm, "DELETE APP")
+    assert.Contains(t, confirm, "Danger zone")
+    assert.Contains(t, confirm, "Delete app permanently")
 }
 
 func TestLoadStatusEmptyAppReturnsNilCommand(t *testing.T) {

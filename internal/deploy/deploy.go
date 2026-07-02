@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,6 +13,17 @@ import (
 	"velo-deploy/internal/hosts"
 	deploynode "velo-deploy/internal/node"
 	"velo-deploy/internal/systemd"
+)
+
+var (
+	stopApp            = systemd.StopApp
+	removeService      = systemd.RemoveService
+	daemonReload       = systemd.DaemonReload
+	removeUser         = systemd.RemoveUser
+	removeCaddyConfig  = caddy.RemoveConfig
+	reloadCaddy        = caddy.Reload
+	removeHostAlias    = hosts.RemoveAlias
+	removeManagedFiles = os.RemoveAll
 )
 
 // Deploy performs a full deployment from a git repository.
@@ -349,26 +361,50 @@ func Remove(cfg *config.Config, appName string) error {
 	}
 
 	fmt.Printf("Removing %s...\n", appName)
+	var cleanupErrs []error
 
 	if app.Type == config.AppTypeNode {
-		systemd.StopApp(appName)
-		systemd.RemoveService(appName)
-		systemd.DaemonReload()
-		systemd.RemoveUser("deploy-" + appName)
+		if err := stopApp(appName); err != nil {
+			cleanupErrs = append(cleanupErrs, fmt.Errorf("stop systemd service: %w", err))
+		}
+		if err := removeService(appName); err != nil {
+			cleanupErrs = append(cleanupErrs, fmt.Errorf("remove systemd service: %w", err))
+		}
+		if err := daemonReload(); err != nil {
+			cleanupErrs = append(cleanupErrs, fmt.Errorf("reload systemd daemon: %w", err))
+		}
+		if err := removeUser("deploy-" + appName); err != nil {
+			cleanupErrs = append(cleanupErrs, fmt.Errorf("remove system user: %w", err))
+		}
 	}
 
-	caddy.RemoveConfig(appName)
-	hosts.RemoveAlias(app.Alias)
-
-	if app.Type != config.AppTypeNode {
-		os.RemoveAll(filepath.Join(cfg.AppsDir, appName))
+	if err := removeCaddyConfig(appName); err != nil {
+		cleanupErrs = append(cleanupErrs, fmt.Errorf("remove Caddy config: %w", err))
+	}
+	if app.Alias != "" {
+		if err := removeHostAlias(app.Alias); err != nil {
+			cleanupErrs = append(cleanupErrs, fmt.Errorf("remove hosts alias: %w", err))
+		}
+	}
+	if err := removeManagedFiles(filepath.Join(cfg.AppsDir, appName)); err != nil {
+		cleanupErrs = append(cleanupErrs, fmt.Errorf("remove app files: %w", err))
 	}
 
 	delete(cfg.Apps, appName)
-	cfg.Save()
+	if err := cfg.Save(); err != nil {
+		cleanupErrs = append(cleanupErrs, fmt.Errorf("save config: %w", err))
+	}
 
-	rebuildSharedCaddyConfig(cfg)
-	caddy.Reload()
+	if err := rebuildSharedCaddyConfig(cfg); err != nil {
+		cleanupErrs = append(cleanupErrs, fmt.Errorf("rebuild shared Caddy config: %w", err))
+	}
+	if err := reloadCaddy(); err != nil {
+		cleanupErrs = append(cleanupErrs, fmt.Errorf("reload Caddy: %w", err))
+	}
+
+	if err := errors.Join(cleanupErrs...); err != nil {
+		return fmt.Errorf("failed to fully remove app '%s': %w", appName, err)
+	}
 
 	fmt.Printf("✅ %s removed.\n", appName)
 	return nil

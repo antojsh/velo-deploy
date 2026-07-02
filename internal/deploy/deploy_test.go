@@ -11,6 +11,7 @@ import (
 	"velo-deploy/internal/caddy"
 	"velo-deploy/internal/config"
 	"velo-deploy/internal/hosts"
+	"velo-deploy/internal/systemd"
 )
 
 func TestDeriveAppName(t *testing.T) {
@@ -463,6 +464,93 @@ func TestRemoveRejectsUnknownApp(t *testing.T) {
 
     assert.Error(t, err)
     assert.Contains(t, err.Error(), "not found")
+}
+
+func TestRemoveNodeAppDeletesAllManagedState(t *testing.T) {
+    tmpDir := t.TempDir()
+    appsDir := filepath.Join(tmpDir, "apps")
+    appDir := filepath.Join(appsDir, "api")
+    require.NoError(t, os.MkdirAll(appDir, 0755))
+
+    confDir := filepath.Join(tmpDir, "caddy")
+    caddy.SetConfDir(confDir)
+    defer caddy.SetConfDir("/etc/caddy/conf.d")
+    require.NoError(t, os.MkdirAll(confDir, 0755))
+    require.NoError(t, os.WriteFile(filepath.Join(confDir, "api.conf"), []byte("api config"), 0644))
+    require.NoError(t, os.WriteFile(filepath.Join(confDir, "_shared.conf"), []byte("shared"), 0644))
+
+    hostsPath := filepath.Join(tmpDir, "hosts")
+    require.NoError(t, os.WriteFile(hostsPath, []byte("127.0.0.1 localhost\n127.0.0.1 api.local\n"), 0644))
+    hosts.SetHostsFile(hostsPath)
+    defer hosts.SetHostsFile("/etc/hosts")
+
+    originalConfigDir := config.ConfigDir
+    config.ConfigDir = filepath.Join(tmpDir, "config")
+    defer func() { config.ConfigDir = originalConfigDir }()
+
+    calls := []string{}
+    stopApp = func(name string) error { calls = append(calls, "stop:"+name); return nil }
+    removeService = func(name string) error { calls = append(calls, "service:"+name); return nil }
+    daemonReload = func() error { calls = append(calls, "daemon-reload"); return nil }
+    removeUser = func(username string) error { calls = append(calls, "user:"+username); return nil }
+    reloadCaddy = func() error { calls = append(calls, "caddy-reload"); return nil }
+    defer resetRemoveHooks()
+
+    cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{
+        "api": {Name: "api", Type: config.AppTypeNode, Alias: "api.local", Port: 3000},
+    }}
+
+    err := Remove(cfg, "api")
+
+    assert.NoError(t, err)
+    assert.NotContains(t, cfg.Apps, "api")
+    _, err = os.Stat(appDir)
+    assert.True(t, os.IsNotExist(err))
+    _, err = os.Stat(filepath.Join(confDir, "api.conf"))
+    assert.True(t, os.IsNotExist(err))
+    assert.Contains(t, calls, "stop:api")
+    assert.Contains(t, calls, "service:api")
+    assert.Contains(t, calls, "daemon-reload")
+    assert.Contains(t, calls, "user:deploy-api")
+    assert.Contains(t, calls, "caddy-reload")
+}
+
+func TestRemoveReportsCleanupErrors(t *testing.T) {
+    tmpDir := t.TempDir()
+    originalConfigDir := config.ConfigDir
+    config.ConfigDir = filepath.Join(tmpDir, "config")
+    defer func() { config.ConfigDir = originalConfigDir }()
+
+    stopApp = func(name string) error { return assert.AnError }
+    removeService = func(name string) error { return nil }
+    daemonReload = func() error { return nil }
+    removeUser = func(username string) error { return nil }
+    removeCaddyConfig = func(name string) error { return nil }
+    removeHostAlias = func(alias string) error { return nil }
+    removeManagedFiles = func(path string) error { return nil }
+    reloadCaddy = func() error { return nil }
+    defer resetRemoveHooks()
+
+    cfg := &config.Config{AppsDir: filepath.Join(tmpDir, "apps"), Apps: map[string]*config.AppMeta{
+        "api": {Name: "api", Type: config.AppTypeNode},
+    }}
+
+    err := Remove(cfg, "api")
+
+    assert.Error(t, err)
+    assert.Contains(t, err.Error(), "failed to fully remove app 'api'")
+    assert.Contains(t, err.Error(), "stop systemd service")
+}
+
+func resetRemoveHooks() {
+    stopApp = systemd.StopApp
+    removeService = systemd.RemoveService
+    daemonReload = systemd.DaemonReload
+    removeUser = systemd.RemoveUser
+    removeCaddyConfig = caddy.RemoveConfig
+    reloadCaddy = caddy.Reload
+    removeHostAlias = hosts.RemoveAlias
+    removeManagedFiles = os.RemoveAll
 }
 
 

@@ -606,7 +606,7 @@ func (m model) submitAdd() (tea.Model, tea.Cmd) {
 
 func (m model) handleConfirmKey(key string) (tea.Model, tea.Cmd) {
 	switch key {
-	case "left", "h", "right", "l":
+	case "left", "h", "right", "l", "up", "k", "down", "j":
 		m.confirmSel = 1 - m.confirmSel
 	case "y", "Y":
 		m.confirmSel = 0
@@ -628,7 +628,7 @@ func (m model) doDelete() (tea.Model, tea.Cmd) {
 	name := m.currentApp()
 	m.view = viewOutput
 	m.focus = panelRight
-	m.deployOutput = []string{"Removing " + name + "…"}
+	m.deployOutput = []string{"Removing " + name + " from config, Caddy, systemd and files..."}
 	cfg := m.cfg
 
 	return m, func() tea.Msg {
@@ -976,29 +976,29 @@ func (m model) renderConfirm() string {
 	name := m.currentApp()
 	var s strings.Builder
 
-	s.WriteString(sectionTitleStyle.Render("CONFIRM DELETE") + "\n")
+	s.WriteString(sectionTitleStyle.Render("DELETE APP") + "\n")
 	s.WriteString(strings.Repeat("─", m.rightPanelWidth()-4) + "\n\n")
 
-	s.WriteString(errorMsgStyle.Render(fmt.Sprintf(
-		"  Are you sure you want to delete '%s'?\n  This will stop the service, remove the files,\n  and delete the system user.\n\n",
-		name,
-	)))
+	s.WriteString(errorMsgStyle.Bold(true).Render("Danger zone") + "\n")
+	s.WriteString(errorMsgStyle.Render(fmt.Sprintf("You are about to permanently remove '%s'.\n\n", name)))
+	s.WriteString(labelStyle.Render("This operation will attempt to clean all managed state:") + "\n")
+	s.WriteString(valueStyle.Render("  - systemd service and Linux user") + "\n")
+	s.WriteString(valueStyle.Render("  - Caddy vhost/shared routing") + "\n")
+	s.WriteString(valueStyle.Render("  - hosts alias and config entry") + "\n")
+	s.WriteString(valueStyle.Render("  - app files under the managed apps directory") + "\n\n")
 
-	yes := "  YES  "
-	no := "  NO  "
+	deleteOption := lipgloss.NewStyle().Foreground(colorRed).Render("  Delete app permanently")
+	cancelOption := lipgloss.NewStyle().Foreground(colorGreen).Render("  Cancel")
 	if m.confirmSel == 0 {
-		s.WriteString(confirmSelStyle.Foreground(colorRed).Render(yes))
-	} else {
-		s.WriteString(confirmYesStyle.Render(yes))
+		deleteOption = lipgloss.NewStyle().Foreground(colorRed).Background(colorBgSel).Bold(true).Render("> Delete app permanently")
 	}
-	s.WriteString("   ")
 	if m.confirmSel == 1 {
-		s.WriteString(confirmSelStyle.Foreground(colorGreen).Render(no))
-	} else {
-		s.WriteString(confirmNoStyle.Render(no))
+		cancelOption = lipgloss.NewStyle().Foreground(colorGreen).Background(colorBgSel).Bold(true).Render("> Cancel")
 	}
 
-	s.WriteString("\n\n" + helpStyle.Render("[←/→] Select  [Enter] Confirm  [Esc] Cancel"))
+	s.WriteString(deleteOption + "\n")
+	s.WriteString(cancelOption + "\n")
+	s.WriteString("\n" + helpStyle.Render("[Up/Down] Select  [Enter] Confirm  [Y] Delete  [N/Esc] Cancel"))
 	return s.String()
 }
 
