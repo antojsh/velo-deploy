@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This file is automatically updated by [release-please](https://github.com/googleapis/release-please) on every release. Do not edit it manually — write a [Conventional Commit](https://www.conventionalcommits.org/) instead and the bot will roll it up.
 
+## 0.2.3 (2026-07-02)
+
+## What's Changed
+* Fix/single product release by @antojsh in https://github.com/antojsh/velo-deploy/pull/20
+* Fix/single product release by @antojsh in https://github.com/antojsh/velo-deploy/pull/21
+* test: improve unit coverage and enforce threshold by @antojsh in https://github.com/antojsh/velo-deploy/pull/22
+
+
+**Full Changelog**: https://github.com/antojsh/velo-deploy/compare/v0.2.2...v0.2.3
+
 ## 0.2.2 (2026-07-02)
 
 ## What's Changed
