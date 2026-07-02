@@ -38,17 +38,7 @@ jobs:
           TOTAL=$(go tool cover -func=coverage.out | grep "total:" | awk '{print $3}' | tr -d '%')
           echo "Total coverage: ${TOTAL}%"
 
-          # Pre-1.0 thresholds. The Deploy / autoDeploy / EnsureInstalled /
-          # RunApp / TUI paths are integration-heavy (touch the network,
-          # filesystem, exec external commands) and are not unit-tested yet.
-          # These are warnings to track, not gates, while we add coverage.
-          MIN_CONFIG=80
-          MIN_HOSTS=80
-          MIN_CADDY=80
-          MIN_NODE=70
-          MIN_SYSTEMD=70
-          MIN_DEPLOY=0
-          MIN_TOTAL=20
+          MIN_TOTAL=90
 
           echo ""
           echo "=== Checking Thresholds ==="

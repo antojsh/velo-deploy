@@ -228,6 +228,7 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 			}
 		}
 
+		cfg.Apps[appName] = meta
 		if err := rebuildSharedCaddyConfig(cfg); err != nil {
 			return fmt.Errorf("failed to rebuild shared Caddy config: %w", err)
 		}
@@ -235,7 +236,6 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 			return fmt.Errorf("failed to reload Caddy: %w", err)
 		}
 
-		cfg.Apps[appName] = meta
 		if err := cfg.Save(); err != nil {
 			fmt.Printf("Warning: failed to save config: %v\n", err)
 		}
@@ -308,6 +308,7 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 		}
 	}
 
+	cfg.Apps[appName] = meta
 	if err := rebuildSharedCaddyConfig(cfg); err != nil {
 		return fmt.Errorf("failed to rebuild shared Caddy config: %w", err)
 	}
@@ -325,7 +326,6 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 		return fmt.Errorf("start failed: %w", err)
 	}
 
-	cfg.Apps[appName] = meta
 	if err := cfg.Save(); err != nil {
 		fmt.Printf("Warning: failed to save config: %v\n", err)
 	}
