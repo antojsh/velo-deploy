@@ -63,7 +63,7 @@ SSH into your VPS and run:
 velo-deploy deploy https://github.com/your-username/hello-velo
 ```
 
-Velo clones, installs (no dependencies in this case, but it will run `npm install` if you have any), picks Node 20 from the `engines` field, registers a systemd unit, and writes a Caddy vhost.
+Velo clones, installs (no dependencies in this case, but it will run `npm install` if you have any), picks Node 24 by default unless `engines.node` defines another supported version, registers a systemd unit, and writes a Caddy vhost.
 
 ## 3. Verify
 
