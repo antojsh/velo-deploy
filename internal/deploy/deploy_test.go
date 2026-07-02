@@ -429,10 +429,13 @@ func TestRegister_StaticWithDomainPersistsMetadataAndCaddyConfig(t *testing.T) {
     assert.Equal(t, config.AppTypeStatic, cfg.Apps["site"].Type)
     assert.Equal(t, "dist", cfg.Apps["site"].OutputDir)
     assert.Equal(t, "site.example.com", cfg.Apps["site"].Domain)
+    assert.Equal(t, "/", cfg.Apps["site"].Path)
 
-    caddyConfig, err := os.ReadFile(filepath.Join(confDir, "site.conf"))
+    caddyConfig, err := os.ReadFile(filepath.Join(confDir, "_shared.conf"))
     require.NoError(t, err)
     assert.Contains(t, string(caddyConfig), "site.example.com")
+    assert.Contains(t, string(caddyConfig), "handle {")
+    assert.Contains(t, string(caddyConfig), "root * "+distDir)
     assert.Contains(t, string(caddyConfig), "file_server")
 }
 
