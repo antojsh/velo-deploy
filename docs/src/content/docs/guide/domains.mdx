@@ -3,7 +3,7 @@ title: Custom domains
 description: Map a real domain to a Velo Deploy app and get automatic HTTPS.
 ---
 
-import { Steps, Aside } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components';
 
 Velo uses [Caddy](https://caddyserver.com/) under the hood. Caddy handles ACME (Let's Encrypt) automatically — the first time a request hits your domain, Caddy requests a certificate, validates it via HTTP-01, and renews it before expiry.
 

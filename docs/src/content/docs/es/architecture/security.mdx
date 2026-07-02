@@ -1,6 +1,6 @@
----
+﻿---
 title: Seguridad
-description: Cómo Velo aísla las apps y en qué podés confiar.
+description: CÃ³mo Velo aÃ­sla las apps y en quÃ© podÃ©s confiar.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -31,7 +31,7 @@ Cada archivo de unidad incluye las siguientes directivas:
 | `PrivateDevices=true` | La app no puede hablar con devices crudos. |
 | `ProtectKernelTunables=true` | Se bloquean escrituras a `/proc` y `/sys`. |
 | `RestrictNamespaces=true` | La app no puede crear nuevos namespaces. |
-| `MemoryDenyWriteExecute=true` | Política de memoria W^X (donde el kernel lo soporte). |
+| `MemoryDenyWriteExecute=true` | PolÃ­tica de memoria W^X (donde el kernel lo soporte). |
 
 Un ejemplo completo:
 
@@ -82,15 +82,15 @@ La app **no puede**:
 
 ## Aislamiento de red
 
-Caddy es el único proceso escuchando en un puerto público. Las apps Node se bindean a `localhost` únicamente — no son accesibles directo desde la red. Todo el tráfico fluye por el reverse proxy de Caddy, que termina TLS y forwardea al upstream correcto.
+Caddy es el Ãºnico proceso escuchando en un puerto pÃºblico. Las apps Node se bindean a `localhost` Ãºnicamente â€” no son accesibles directo desde la red. Todo el trÃ¡fico fluye por el reverse proxy de Caddy, que termina TLS y forwardea al upstream correcto.
 
 ## Secretos
 
-<Aside type="warning" title="No commitees secretos a Git">
+<Aside type="danger" title="No commitees secretos a Git">
 	Velo Deploy no gestiona secretos. Pasalos como variables de entorno en la unidad systemd, nunca como parte del repositorio.
 </Aside>
 
-Para inyectar variables de entorno, editá la unidad y agregá una línea `Environment=`, o usá la directiva `EnvironmentFile=`:
+Para inyectar variables de entorno, editÃ¡ la unidad y agregÃ¡ una lÃ­nea `Environment=`, o usÃ¡ la directiva `EnvironmentFile=`:
 
 ```ini
 [Service]
@@ -98,7 +98,7 @@ Environment="DATABASE_URL=postgres://..."
 EnvironmentFile=/etc/velo-deploy/my-api.env
 ```
 
-Después recargá y reiniciá:
+DespuÃ©s recargÃ¡ y reiniciÃ¡:
 
 ```bash
 sudo systemctl daemon-reload
@@ -107,12 +107,12 @@ sudo systemctl restart velo-my-api
 
 ## Seguridad del webhook
 
-Mirá [Webhooks](/velo-deploy/es/guide/webhooks/#seguridad) para el patrón recomendado de validación HMAC y allow-listing de IPs.
+MirÃ¡ [Webhooks](/velo-deploy/es/guide/webhooks/#seguridad) para el patrÃ³n recomendado de validaciÃ³n HMAC y allow-listing de IPs.
 
 ## Supply chain
 
-Las dependencias Go de Velo están pineadas en `go.sum` y se verifican en cada build. El pipeline de release firma los binarios con [cosign](https://github.com/sigstore/cosign) y el script de install chequea la firma antes de instalar. Mirá la [configuración de release-please](https://github.com/antojsh/velo-deploy/blob/master/release-please-config.json) para el pipeline exacto.
+Las dependencias Go de Velo estÃ¡n pineadas en `go.sum` y se verifican en cada build. El pipeline de release firma los binarios con [cosign](https://github.com/sigstore/cosign) y el script de install chequea la firma antes de instalar. MirÃ¡ la [configuraciÃ³n de release-please](https://github.com/antojsh/velo-deploy/blob/master/release-please-config.json) para el pipeline exacto.
 
 ## Reportar una vulnerabilidad
 
-Mirá [SECURITY.md](https://github.com/antojsh/velo-deploy/blob/master/SECURITY.md) en GitHub.
+MirÃ¡ [SECURITY.md](https://github.com/antojsh/velo-deploy/blob/master/SECURITY.md) en GitHub.

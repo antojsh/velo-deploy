@@ -1,69 +1,273 @@
 /*
- * Velo Deploy brand layer.
+ * Velo Deploy documentation design system.
  *
- * Keep this file focused on marketing/docs presentation. Starlight owns the
- * docs IA; this layer improves contrast, home-page storytelling, and dark-mode
- * polish without replacing the documentation system.
+ * Work WITH Astro Starlight: keep its IA, a11y primitives, routing, search,
+ * and code rendering. This layer adds the Velo brand: precise, dark-first,
+ * Linux-native, and readable under production pressure.
  */
 
 :root {
-  --velo-violet: #7c3aed;
+  color-scheme: light dark;
+  --velo-purple: #7c3aed;
+  --velo-purple-soft: #ede9fe;
   --velo-blue: #2563eb;
-  --velo-cyan: #06b6d4;
-  --velo-ink: #0f172a;
+  --velo-cyan: #22d3ee;
+  --velo-green: #22c55e;
+  --velo-amber: #f59e0b;
+  --velo-red: #ef4444;
+  --velo-ink: #020617;
+  --velo-text: #0f172a;
   --velo-muted: #475569;
-  --velo-card: rgba(255, 255, 255, 0.78);
+  --velo-soft: #64748b;
+  --velo-surface: rgba(255, 255, 255, 0.84);
+  --velo-surface-strong: rgba(255, 255, 255, 0.96);
   --velo-border: rgba(15, 23, 42, 0.12);
-  --sl-color-accent-low: #ede9fe;
+  --velo-border-strong: rgba(15, 23, 42, 0.2);
+  --velo-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+  --velo-shadow-soft: 0 14px 45px rgba(15, 23, 42, 0.08);
+  --velo-radius: 1.25rem;
+  --velo-gradient-brand: linear-gradient(135deg, var(--velo-purple), var(--velo-blue) 58%, var(--velo-cyan));
+  --velo-gradient-run: linear-gradient(135deg, var(--velo-green), var(--velo-cyan));
+  --velo-gradient-danger: linear-gradient(135deg, var(--velo-red), var(--velo-amber));
+  --velo-gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(248, 250, 252, 0.48));
+
+  --sl-font: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --sl-font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --sl-color-accent-low: var(--velo-purple-soft);
   --sl-color-accent: #6d28d9;
-  --sl-color-accent-high: #312e81;
+  --sl-color-accent-high: #2e1065;
+  --sl-color-text-accent: #6d28d9;
+  --sl-color-bg-nav: rgba(255, 255, 255, 0.78);
+  --sl-color-bg-sidebar: rgba(248, 250, 252, 0.78);
+  --sl-content-width: 49rem;
+  --sl-sidebar-width: 18.5rem;
 }
 
 :root[data-theme='dark'] {
-  --velo-ink: #f8fafc;
+  color-scheme: dark;
+  --velo-text: #f8fafc;
   --velo-muted: #cbd5e1;
-  --velo-card: rgba(15, 23, 42, 0.72);
-  --velo-border: rgba(148, 163, 184, 0.22);
+  --velo-soft: #94a3b8;
+  --velo-surface: rgba(15, 23, 42, 0.74);
+  --velo-surface-strong: rgba(15, 23, 42, 0.94);
+  --velo-border: rgba(148, 163, 184, 0.18);
+  --velo-border-strong: rgba(148, 163, 184, 0.3);
+  --velo-shadow: 0 28px 90px rgba(0, 0, 0, 0.36);
+  --velo-shadow-soft: 0 16px 50px rgba(0, 0, 0, 0.24);
+  --velo-gradient-surface: linear-gradient(180deg, rgba(30, 41, 59, 0.74), rgba(15, 23, 42, 0.58));
   --sl-color-accent-low: #1e1b4b;
   --sl-color-accent: #a78bfa;
-  --sl-color-accent-high: #ddd6fe;
+  --sl-color-accent-high: #ede9fe;
+  --sl-color-text-accent: #c4b5fd;
+  --sl-color-bg: #020617;
+  --sl-color-bg-nav: rgba(2, 6, 23, 0.82);
+  --sl-color-bg-sidebar: rgba(2, 6, 23, 0.78);
+  --sl-color-hairline: rgba(148, 163, 184, 0.18);
+  --sl-color-hairline-shade: rgba(148, 163, 184, 0.24);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(124, 58, 237, 0.16), transparent 28rem),
+    radial-gradient(circle at 84% 8%, rgba(37, 99, 235, 0.12), transparent 26rem),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.9), rgba(241, 245, 249, 0.66));
+  text-rendering: optimizeLegibility;
+}
+
+:root[data-theme='dark'] body {
+  background:
+    radial-gradient(circle at 18% -8%, rgba(124, 58, 237, 0.28), transparent 30rem),
+    radial-gradient(circle at 84% 4%, rgba(37, 99, 235, 0.2), transparent 28rem),
+    radial-gradient(circle at 50% 100%, rgba(34, 211, 238, 0.08), transparent 22rem),
+    linear-gradient(180deg, #020617 0%, #0b1120 48%, #020617 100%);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.header,
+.sidebar-pane {
+  backdrop-filter: blur(18px);
 }
 
 .site-title {
-  gap: 0.55rem;
-  color: var(--velo-ink);
-  font-weight: 800;
-  letter-spacing: -0.035em;
+  gap: 0.6rem;
+  color: var(--velo-text);
+  font-weight: 850;
+  letter-spacing: -0.045em;
 }
 
 .site-title img {
-  filter: drop-shadow(0 10px 22px rgba(37, 99, 235, 0.22));
+  filter: drop-shadow(0 12px 26px rgba(37, 99, 235, 0.28));
+}
+
+.social-icons::before {
+  content: 'CLI-first VPS PaaS';
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  margin-inline-end: 0.4rem;
+  border: 1px solid var(--velo-border);
+  border-radius: 999px;
+  padding: 0 0.7rem;
+  color: var(--velo-muted);
+  background: var(--velo-surface);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.sidebar-content a,
+.right-sidebar a {
+  border-radius: 0.65rem;
+}
+
+.sidebar-content a[aria-current='page'] {
+  box-shadow: inset 3px 0 0 var(--sl-color-accent);
 }
 
 .hero {
   position: relative;
+  isolation: isolate;
+  padding-block: clamp(3rem, 8vw, 6.5rem) clamp(2rem, 5vw, 4rem);
+}
+
+.hero::before,
+.hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
 }
 
 .hero::before {
-  content: '';
-  position: absolute;
-  inset: -7rem -4rem auto;
-  height: 30rem;
-  pointer-events: none;
+  inset: -7rem -5rem auto;
+  height: 34rem;
   background:
-    radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.26), transparent 32%),
-    radial-gradient(circle at 78% 18%, rgba(37, 99, 235, 0.2), transparent 30%),
-    radial-gradient(circle at 52% 76%, rgba(6, 182, 212, 0.16), transparent 28%);
-  filter: blur(8px);
-  z-index: -1;
+    radial-gradient(circle at 18% 28%, rgba(124, 58, 237, 0.32), transparent 28%),
+    radial-gradient(circle at 78% 18%, rgba(37, 99, 235, 0.25), transparent 30%),
+    radial-gradient(circle at 52% 78%, rgba(34, 211, 238, 0.18), transparent 26%);
+  filter: blur(10px);
+}
+
+.hero::after {
+  inset: 1rem 4% auto;
+  height: 15rem;
+  border: 1px solid var(--velo-border);
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  opacity: 0.5;
+  transform: rotate(-2deg);
+}
+
+.hero img {
+  filter: drop-shadow(0 22px 55px rgba(37, 99, 235, 0.32));
+}
+
+.hero h1 {
+  max-width: 13ch;
+  letter-spacing: -0.075em;
 }
 
 .hero .tagline {
-  max-width: 50rem;
-  font-size: clamp(1.1rem, 1.8vw, 1.35rem);
+  max-width: 56rem;
+  color: var(--velo-muted);
+  font-size: clamp(1.08rem, 1.8vw, 1.38rem);
+  line-height: 1.65;
 }
 
-.velo-pill-row {
+.hero .actions a {
+  min-height: 2.9rem;
+  border-radius: 999px;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.hero .actions a:hover {
+  transform: translateY(-1px);
+}
+
+.main-pane :where(h1, h2, h3) {
+  color: var(--velo-text);
+  letter-spacing: -0.035em;
+}
+
+.main-pane :where(p, li) {
+  line-height: 1.75;
+}
+
+.sl-markdown-content :where(h2) {
+  margin-top: 3rem;
+}
+
+.sl-markdown-content :where(a:not(.card):not(.sl-link-button)) {
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 0.08em;
+}
+
+.sl-markdown-content :where(code):not(pre code) {
+  border: 1px solid var(--velo-border);
+  border-radius: 0.45rem;
+  padding: 0.08rem 0.34rem;
+  color: var(--sl-color-text-accent);
+  background: color-mix(in srgb, var(--sl-color-accent-low), transparent 34%);
+  font-size: 0.88em;
+}
+
+.sl-markdown-content :where(pre) {
+  border: 1px solid var(--velo-border-strong);
+  box-shadow: var(--velo-shadow-soft);
+}
+
+.sl-markdown-content :where(table) {
+  overflow: hidden;
+  border: 1px solid var(--velo-border);
+  border-radius: 1rem;
+  box-shadow: var(--velo-shadow-soft);
+}
+
+.sl-markdown-content :where(th) {
+  color: var(--velo-text);
+  background: color-mix(in srgb, var(--sl-color-accent-low), transparent 44%);
+}
+
+.sl-markdown-content :where(blockquote) {
+  border-inline-start: 4px solid var(--sl-color-accent);
+  border-radius: 0 1rem 1rem 0;
+  padding: 1rem 1.15rem;
+  color: var(--velo-muted);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-accent-low), transparent 20%), transparent);
+}
+
+.card,
+.sl-card {
+  border-color: var(--velo-border);
+  border-radius: var(--velo-radius);
+  background: var(--velo-gradient-surface), var(--velo-surface);
+  box-shadow: var(--velo-shadow-soft);
+}
+
+.card:hover,
+.sl-card:hover {
+  border-color: var(--velo-border-strong);
+  transform: translateY(-1px);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.velo-pill-row,
+.velo-metric-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -71,17 +275,56 @@
   margin: -0.75rem auto 2rem;
 }
 
-.velo-pill {
+.velo-pill,
+.velo-metric {
   border: 1px solid var(--velo-border);
   border-radius: 999px;
-  padding: 0.45rem 0.8rem;
   color: var(--velo-muted);
-  background: var(--velo-card);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  background: var(--velo-surface);
+  box-shadow: var(--velo-shadow-soft);
   backdrop-filter: blur(16px);
-  font-size: 0.9rem;
 }
 
+.velo-pill {
+  padding: 0.48rem 0.82rem;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.velo-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.92rem;
+}
+
+.velo-metric strong {
+  color: var(--velo-text);
+}
+
+.velo-section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+  color: var(--sl-color-text-accent);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.velo-section-kicker::before {
+  content: '';
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--velo-gradient-run);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--velo-green), transparent 78%);
+}
+
+.velo-doc-grid,
 .velo-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -89,44 +332,95 @@
   margin: 2rem 0;
 }
 
+.velo-compare,
+.velo-principles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
 .velo-card,
+.velo-doc-card,
 .velo-compare-card,
-.velo-command-panel {
+.velo-command-panel,
+.velo-roadmap,
+.velo-principle {
   border: 1px solid var(--velo-border);
-  border-radius: 1.25rem;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent),
-    var(--velo-card);
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  border-radius: var(--velo-radius);
+  background: var(--velo-gradient-surface), var(--velo-surface);
+  box-shadow: var(--velo-shadow-soft);
   backdrop-filter: blur(18px);
 }
 
-.velo-card {
-  padding: 1.1rem;
+.velo-card,
+.velo-doc-card,
+.velo-compare-card,
+.velo-principle {
+  padding: 1.18rem;
+}
+
+.velo-doc-card {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 0.6rem;
+  color: inherit;
+  text-decoration: none !important;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.velo-doc-card:hover {
+  border-color: color-mix(in srgb, var(--sl-color-accent), var(--velo-border) 48%);
+  box-shadow: var(--velo-shadow);
+  transform: translateY(-2px);
+}
+
+.velo-doc-card span {
+  color: var(--sl-color-text-accent);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .velo-card strong,
-.velo-compare-card strong {
-  color: var(--velo-ink);
+.velo-doc-card strong,
+.velo-compare-card strong,
+.velo-principle strong {
+  color: var(--velo-text);
+  font-size: 1.02rem;
 }
 
 .velo-card p,
-.velo-compare-card p {
+.velo-doc-card p,
+.velo-compare-card p,
+.velo-principle p {
   color: var(--velo-muted);
-  margin-bottom: 0;
+  margin: 0;
 }
 
 .velo-icon {
   display: inline-grid;
   place-items: center;
-  width: 2.4rem;
-  height: 2.4rem;
-  margin-bottom: 0.7rem;
-  border-radius: 0.8rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.75rem;
+  border-radius: 0.9rem;
   color: white;
-  background: linear-gradient(135deg, var(--velo-violet), var(--velo-blue));
-  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.25);
-  font-weight: 800;
+  background: var(--velo-gradient-brand);
+  box-shadow: 0 14px 34px rgba(37, 99, 235, 0.28);
+  font-family: var(--sl-font-mono);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.velo-icon.run {
+  background: var(--velo-gradient-run);
+}
+
+.velo-icon.warn {
+  background: var(--velo-gradient-danger);
 }
 
 .velo-command-panel {
@@ -139,68 +433,170 @@
   align-items: center;
   gap: 0.45rem;
   border-bottom: 1px solid var(--velo-border);
-  padding: 0.8rem 1rem;
+  padding: 0.82rem 1rem;
   color: var(--velo-muted);
+  background: color-mix(in srgb, var(--velo-surface-strong), transparent 18%);
   font-size: 0.9rem;
+  font-weight: 650;
 }
 
 .velo-dot {
   width: 0.72rem;
   height: 0.72rem;
   border-radius: 999px;
-  background: #ef4444;
+  background: var(--velo-red);
 }
 
 .velo-dot:nth-child(2) {
-  background: #f59e0b;
+  background: var(--velo-amber);
 }
 
 .velo-dot:nth-child(3) {
-  background: #22c55e;
+  background: var(--velo-green);
 }
 
 .velo-command-panel pre {
   margin: 0;
   border: 0;
   border-radius: 0;
-}
-
-.velo-compare {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 2rem 0;
-}
-
-.velo-compare-card {
-  padding: 1.25rem;
+  box-shadow: none;
 }
 
 .velo-compare-card.bad {
-  border-color: rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.32);
 }
 
 .velo-compare-card.good {
-  border-color: rgba(34, 197, 94, 0.3);
+  border-color: rgba(34, 197, 94, 0.34);
 }
 
 .velo-quote {
   margin: 2rem 0;
+  border: 1px solid var(--velo-border);
   border-left: 4px solid var(--sl-color-accent);
+  border-radius: var(--velo-radius);
+  padding: 1.1rem 1.25rem;
+  color: var(--velo-text);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--sl-color-accent-low), transparent 14%), transparent),
+    var(--velo-surface);
+  box-shadow: var(--velo-shadow-soft);
+  font-size: 1.04rem;
+}
+
+.velo-roadmap {
+  display: grid;
+  gap: 0.85rem;
+  margin: 2rem 0;
+  padding: 1rem;
+}
+
+.velo-roadmap a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.9rem;
+  border: 1px solid var(--velo-border);
   border-radius: 1rem;
-  padding: 1rem 1.25rem;
-  color: var(--velo-ink);
-  background: linear-gradient(90deg, rgba(124, 58, 237, 0.12), transparent);
-  font-size: 1.05rem;
+  padding: 0.85rem 0.95rem;
+  color: inherit;
+  background: color-mix(in srgb, var(--velo-surface-strong), transparent 20%);
+  text-decoration: none !important;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.velo-roadmap a:hover {
+  border-color: var(--sl-color-accent);
+  background: color-mix(in srgb, var(--sl-color-accent-low), transparent 48%);
+  transform: translateX(2px);
+}
+
+.velo-roadmap b {
+  color: var(--velo-text);
+}
+
+.velo-roadmap small {
+  color: var(--velo-muted);
+}
+
+.velo-roadmap a::after {
+  content: '→';
+  color: var(--sl-color-text-accent);
+  font-weight: 850;
+}
+
+.velo-step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  color: white;
+  background: var(--velo-gradient-brand);
+  font-family: var(--sl-font-mono);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.velo-footer-cta {
+  margin: 3rem 0 1rem;
+  border: 1px solid var(--velo-border-strong);
+  border-radius: 1.75rem;
+  padding: clamp(1.4rem, 4vw, 2rem);
+  background:
+    radial-gradient(circle at 12% 20%, rgba(124, 58, 237, 0.26), transparent 30%),
+    radial-gradient(circle at 88% 28%, rgba(34, 211, 238, 0.18), transparent 30%),
+    var(--velo-surface-strong);
+  box-shadow: var(--velo-shadow);
+}
+
+.velo-footer-cta h2 {
+  margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 72rem) {
+  .social-icons::before {
+    display: none;
+  }
 }
 
 @media (max-width: 52rem) {
+  .hero h1 {
+    max-width: 11ch;
+  }
+
+  .velo-doc-grid,
   .velo-grid,
-  .velo-compare {
+  .velo-compare,
+  .velo-principles {
     grid-template-columns: 1fr;
   }
 
-  .velo-pill-row {
+  .velo-pill-row,
+  .velo-metric-row {
     justify-content: flex-start;
+  }
+
+  .velo-roadmap a {
+    grid-template-columns: auto 1fr;
+  }
+
+  .velo-roadmap a::after {
+    display: none;
   }
 }

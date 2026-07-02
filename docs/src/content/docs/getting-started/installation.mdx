@@ -1,9 +1,9 @@
----
+﻿---
 title: Installation
 description: System requirements, supported platforms, and the one-liner installer.
 ---
 
-import { Tabs, TabItem, Steps, Aside } from '@astrojs/starlight/components';
+import { Aside, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 Velo Deploy runs on a Linux VPS and orchestrates three system services: the `velo-deploy` CLI/TUI binary, the `velo-deploy-watcher` webhook daemon, and the Caddy web server.
 
@@ -53,8 +53,6 @@ Use the manual flow when you want to pin a specific version or run from source.
 
 <Tabs syncKey="install-method">
 	<TabItem label="From a release tarball" icon="seti:default">
-
-		<!-- markdownlint-disable MD046 -->
 		```bash
 		VER=$(curl -sS https://api.github.com/repos/antojsh/velo-deploy/releases/latest | grep tag_name | cut -d '"' -f 4)
 		curl -sSLo velo-deploy.tar.gz "https://github.com/antojsh/velo-deploy/releases/download/${VER}/velo-deploy_${VER#v}_linux_amd64.tar.gz"
@@ -62,7 +60,6 @@ Use the manual flow when you want to pin a specific version or run from source.
 		sudo install -m 0755 velo-deploy /usr/local/bin/velo-deploy
 		sudo ./install.sh
 		```
-		<!-- markdownlint-enable MD046 -->
 
 	</TabItem>
 	<TabItem label="From source" icon="seti:shell">
@@ -110,5 +107,5 @@ If all four checks pass, you are ready to deploy your first app.
 
 ## Next steps
 
-- [Quick deploy →](/velo-deploy/getting-started/quick-deploy/)
-- [First app walkthrough →](/velo-deploy/getting-started/first-app/)
+- [Quick deploy â†’](/velo-deploy/getting-started/quick-deploy/)
+- [First app walkthrough â†’](/velo-deploy/getting-started/first-app/)
