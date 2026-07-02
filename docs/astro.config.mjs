@@ -14,8 +14,8 @@ export default defineConfig({
       description:
         'Bare Metal PaaS — Deploy Node.js applications and static sites to any VPS without Docker.',
       logo: {
-        src: './src/assets/logo.svg',
-        replacesTitle: true,
+        src: './src/assets/logo-mark.svg',
+        replacesTitle: false,
       },
       favicon: '/favicon.svg',
       social: [
@@ -31,53 +31,23 @@ export default defineConfig({
       sidebar: [
         {
           label: 'Getting Started',
-          items: [
-            {
-              autogenerate: {
-                directory: 'getting-started',
-              },
-            },
-          ],
+          items: [{ autogenerate: { directory: 'getting-started' } }],
         },
         {
           label: 'Guides',
-          items: [
-            {
-              autogenerate: {
-                directory: 'guide',
-              },
-            },
-          ],
+          items: [{ autogenerate: { directory: 'guide' } }],
         },
         {
           label: 'Architecture',
-          items: [
-            {
-              autogenerate: {
-                directory: 'architecture',
-              },
-            },
-          ],
+          items: [{ autogenerate: { directory: 'architecture' } }],
         },
         {
           label: 'Reference',
-          items: [
-            {
-              autogenerate: {
-                directory: 'reference',
-              },
-            },
-          ],
+          items: [{ autogenerate: { directory: 'reference' } }],
         },
         {
           label: 'Operations',
-          items: [
-            {
-              autogenerate: {
-                directory: 'operations',
-              },
-            },
-          ],
+          items: [{ autogenerate: { directory: 'operations' } }],
         },
       ],
       defaultLocale: 'root',
@@ -87,6 +57,7 @@ export default defineConfig({
       },
       lastUpdated: true,
       expressiveCode: true,
+      customCss: ['./src/styles/brand.css'],
     }),
   ],
 });
