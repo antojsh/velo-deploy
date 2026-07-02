@@ -83,7 +83,7 @@ Los logs bajo `/var/log/velo-deploy/` se pueden borrar sin problema. Las unidade
 Una instalación típica usa:
 
 - 80 MB para el binario de Go y Caddy.
-- 200 MB para nvm + Node 20.
+- 200 MB para nvm + Node 24.
 - 100 MB por app desplegada (mayormente `node_modules`).
 
 Planeá 5 GB de disco libre en un servidor chico.

@@ -42,8 +42,8 @@ func Deploy(cfg *config.Config, repoURL, domain, alias string) error {
 	// 4. Detect Node.js version
 	nodeVer, err := deploynode.DetectVersionFromPackageJSON(appDir)
 	if err != nil {
-		fmt.Printf("Warning: %v, using default v20\n", err)
-		nodeVer = "20"
+		fmt.Printf("Warning: %v, using default v%s\n", err, deploynode.DefaultNodeVersion)
+		nodeVer = deploynode.DefaultNodeVersion
 	}
 	fmt.Printf("Detected Node.js version: %s\n", nodeVer)
 
@@ -252,8 +252,8 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 
 	nodeVer, err := deploynode.DetectVersionFromPackageJSON(appDir)
 	if err != nil {
-		fmt.Printf("Warning: %v, using default v20\n", err)
-		nodeVer = "20"
+		fmt.Printf("Warning: %v, using default v%s\n", err, deploynode.DefaultNodeVersion)
+		nodeVer = deploynode.DefaultNodeVersion
 	}
 
 	if err := deploynode.EnsureInstalled(cfg.NVMDir, nodeVer); err != nil {

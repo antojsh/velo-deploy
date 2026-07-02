@@ -30,11 +30,11 @@ Override del path con la variable de entorno `VELO_CONFIG`.
       "type": "node",
       "repo_url": "https://github.com/user/my-api",
       "branch": "main",
-      "node_version": "20",
+      "node_version": "24",
       "port": 3000,
       "domain": "",
       "alias": "my-api.local",
-      "node_path": "/opt/nvm/versions/node/v20.0.0/bin/node",
+      "node_path": "/opt/nvm/versions/node/v24.0.0/bin/node",
       "entry_point": "index.js"
     },
     "my-site": {
@@ -76,7 +76,7 @@ Override del path con la variable de entorno `VELO_CONFIG`.
 | --- | --- | --- | --- |
 | `repo_url` | string | sí | URL de Git. |
 | `branch` | string | no | Branch a trackear. Default: default del repo. |
-| `node_version` | string | no | Major version a usar. Default: `20`. |
+| `node_version` | string | no | Major version a usar. Default: `24`. |
 | `port` | number | sí | Puerto interno. Default: primer libre en 3000-3999. |
 | `node_path` | string | sí | Path absoluto al binario de Node. |
 | `entry_point` | string | sí | Archivo a iniciar. |

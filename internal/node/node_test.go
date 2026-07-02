@@ -61,7 +61,7 @@ func TestDetectVersionFromPackageJSON_NoEngines(t *testing.T) {
 
 	version, err := DetectVersionFromPackageJSON(tmpDir)
 	assert.NoError(t, err)
-	assert.Equal(t, "20", version)
+	assert.Equal(t, DefaultNodeVersion, version)
 }
 
 func TestDetectVersionFromPackageJSON_NoNodeKey(t *testing.T) {
@@ -72,7 +72,7 @@ func TestDetectVersionFromPackageJSON_NoNodeKey(t *testing.T) {
 
 	version, err := DetectVersionFromPackageJSON(tmpDir)
 	assert.NoError(t, err)
-	assert.Equal(t, "20", version)
+	assert.Equal(t, DefaultNodeVersion, version)
 }
 
 func TestDetectVersionFromPackageJSON_EmptyEngines(t *testing.T) {
@@ -83,7 +83,7 @@ func TestDetectVersionFromPackageJSON_EmptyEngines(t *testing.T) {
 
 	version, err := DetectVersionFromPackageJSON(tmpDir)
 	assert.NoError(t, err)
-	assert.Equal(t, "20", version)
+	assert.Equal(t, DefaultNodeVersion, version)
 }
 
 func TestDetectVersionFromPackageJSON_InvalidJSON(t *testing.T) {
@@ -114,7 +114,7 @@ func TestDetectVersionFromPackageJSON_MalformedNodeValue(t *testing.T) {
 
 	version, err := DetectVersionFromPackageJSON(tmpDir)
 	assert.NoError(t, err)
-	assert.Equal(t, "20", version)
+	assert.Equal(t, DefaultNodeVersion, version)
 }
 
 func TestDetectVersionFromPackageJSON_EnginesBeforeNode(t *testing.T) {
@@ -198,7 +198,7 @@ func TestDetectVersionFromPackageJSON_PackageJSONWithoutEnginesField(t *testing.
 
 	version, err := DetectVersionFromPackageJSON(tmpDir)
 	assert.NoError(t, err)
-	assert.Equal(t, "20", version)
+	assert.Equal(t, DefaultNodeVersion, version)
 }
 
 func TestDetectVersionFromPackageJSON_EnginesFieldEmptyString(t *testing.T) {
@@ -209,7 +209,7 @@ func TestDetectVersionFromPackageJSON_EnginesFieldEmptyString(t *testing.T) {
 
 	version, err := DetectVersionFromPackageJSON(tmpDir)
 	assert.NoError(t, err)
-	assert.Equal(t, "20", version)
+	assert.Equal(t, DefaultNodeVersion, version)
 }
 
 func TestGetNodePath_GlobNoMatch(t *testing.T) {

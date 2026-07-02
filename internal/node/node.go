@@ -14,9 +14,13 @@ var (
 	execCommand = exec.Command
 )
 
+// DefaultNodeVersion is the Node.js major version used when package.json does
+// not define engines.node or defines a malformed value.
+const DefaultNodeVersion = "24"
+
 // DetectVersionFromPackageJSON reads package.json and extracts the "engines.node"
-// field. Returns the major version as a string (e.g., "20") or the configured
-// default ("20") when the field is missing/empty/malformed. Returns an error
+// field. Returns the major version as a string (e.g., "24") or the configured
+// default when the field is missing/empty/malformed. Returns an error
 // only when the file is missing or the JSON is invalid.
 func DetectVersionFromPackageJSON(workDir string) (string, error) {
 	pkgPath := filepath.Join(workDir, "package.json")
@@ -36,7 +40,7 @@ func DetectVersionFromPackageJSON(workDir string) (string, error) {
 
 	raw := strings.TrimSpace(pkg.Engines.Node)
 	if raw == "" {
-		return "20", nil
+		return DefaultNodeVersion, nil
 	}
 
 	// Strip common range operators: >=, <=, >, <, ^, ~, =
@@ -51,7 +55,7 @@ func DetectVersionFromPackageJSON(workDir string) (string, error) {
 		end++
 	}
 	if end == 0 {
-		return "20", nil
+		return DefaultNodeVersion, nil
 	}
 	return raw[:end], nil
 }

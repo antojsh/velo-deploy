@@ -52,7 +52,7 @@ type AppConfig = {
 | `nvm_dir` | `/opt/nvm` |
 | `apps.<name>.alias` | `<name>.local` |
 | `apps.<name>.branch` | branch default del repo |
-| `apps.<name>.node_version` | `20` |
+| `apps.<name>.node_version` | `24` |
 | `apps.<name>.port` | primer libre en `3000-3999` |
 | `apps.<name>.output_dir` | primer existente de `dist`, `build`, `_site`, `public`, `output` |
 
@@ -63,7 +63,7 @@ type AppConfig = {
 - `port` debe ser un entero en `3000-3999` para apps Node.js.
 - `domain` debe ser un nombre DNS válido (sin scheme, sin path).
 - `alias` debe ser un nombre DNS válido.
-- `node_version` debe ser uno de `16`, `18`, `20`, `22`.
+- `node_version` debe ser uno de `16`, `18`, `20`, `22`, `24`.
 - `entry_point` debe ser un path relativo adentro del dir de la app.
 - `output_dir` debe ser un path relativo adentro del dir de la app.
 
@@ -82,11 +82,11 @@ type AppConfig = {
       "type": "node",
       "repo_url": "https://github.com/acme/api",
       "branch": "main",
-      "node_version": "20",
+      "node_version": "24",
       "port": 3000,
       "domain": "api.acme.com",
       "alias": "api.local",
-      "node_path": "/opt/nvm/versions/node/v20.10.0/bin/node",
+      "node_path": "/opt/nvm/versions/node/v24.18.0/bin/node",
       "entry_point": "dist/main.js"
     },
     "marketing": {

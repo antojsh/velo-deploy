@@ -9,8 +9,9 @@ Velo Deploy usa [nvm](https://github.com/nvm-sh/nvm) para gestionar Node.js. Las
 
 - Node.js 16 (LTS)
 - Node.js 18 (LTS)
-- Node.js 20 (LTS, **default**)
+- Node.js 20 (LTS)
 - Node.js 22 (LTS)
+- Node.js 24 (LTS, **default**)
 
 ## Cómo se elige la versión
 
@@ -18,7 +19,7 @@ Velo Deploy usa [nvm](https://github.com/nvm-sh/nvm) para gestionar Node.js. Las
 
 1. Velo lee el campo `engines.node` del `package.json`.
 2. Se instala la mayor versión soportada que satisfaga el rango (o se reusa si ya está presente).
-3. Si no hay campo `engines`, Velo cae a **Node 20**.
+3. Si no hay campo `engines`, Velo cae a **Node 24**.
 
 </Steps>
 
@@ -30,7 +31,7 @@ Velo Deploy usa [nvm](https://github.com/nvm-sh/nvm) para gestionar Node.js. Las
 }
 ```
 
-→ Velo instala Node 20 (la última LTS que satisface `>=18`).
+→ Velo instala Node 24 (la última LTS que satisface `>=18`).
 
 ```json
 {
@@ -46,7 +47,7 @@ Velo Deploy usa [nvm](https://github.com/nvm-sh/nvm) para gestionar Node.js. Las
 }
 ```
 
-→ Velo instala Node 22.
+→ Velo instala Node 24 (la última LTS que satisface `>=22.0.0`).
 
 ## Pinear una versión explícitamente
 
