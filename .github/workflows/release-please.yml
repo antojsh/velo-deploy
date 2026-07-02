@@ -270,7 +270,7 @@ jobs:
           fail_on_unmatched_files: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Clean up autorelease: pending labels from fulfilled release PRs
+      - name: "Clean up autorelease: pending labels from fulfilled release PRs"
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
