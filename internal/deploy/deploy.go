@@ -17,9 +17,12 @@ import (
 
 var (
 	stopApp            = systemd.StopApp
+	disableApp         = systemd.DisableApp
 	removeService      = systemd.RemoveService
 	daemonReload       = systemd.DaemonReload
+	resetFailed        = systemd.ResetFailed
 	removeUser         = systemd.RemoveUser
+	serviceExists      = systemd.ServiceExists
 	removeCaddyConfig  = caddy.RemoveConfig
 	reloadCaddy        = caddy.Reload
 	removeHostAlias    = hosts.RemoveAlias
@@ -446,15 +449,22 @@ func Remove(cfg *config.Config, appName string) error {
 	fmt.Printf("Removing %s...\n", appName)
 	var cleanupErrs []error
 
-	if app.Type == config.AppTypeNode {
+	hasSystemdService := app.Type == config.AppTypeNode || serviceExists(appName)
+	if hasSystemdService {
 		if err := stopApp(appName); err != nil {
 			cleanupErrs = append(cleanupErrs, fmt.Errorf("stop systemd service: %w", err))
+		}
+		if err := disableApp(appName); err != nil {
+			cleanupErrs = append(cleanupErrs, fmt.Errorf("disable systemd service: %w", err))
 		}
 		if err := removeService(appName); err != nil {
 			cleanupErrs = append(cleanupErrs, fmt.Errorf("remove systemd service: %w", err))
 		}
 		if err := daemonReload(); err != nil {
 			cleanupErrs = append(cleanupErrs, fmt.Errorf("reload systemd daemon: %w", err))
+		}
+		if err := resetFailed(appName); err != nil {
+			cleanupErrs = append(cleanupErrs, fmt.Errorf("reset systemd failed state: %w", err))
 		}
 		if err := removeUser("deploy-" + appName); err != nil {
 			cleanupErrs = append(cleanupErrs, fmt.Errorf("remove system user: %w", err))
