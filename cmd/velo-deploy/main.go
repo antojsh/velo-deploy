@@ -35,11 +35,12 @@ func main() {
 		fmt.Printf("velo-deploy %s\n", version)
 	case "deploy":
 		if len(os.Args) < 3 {
-			fmt.Println("Usage: velo-deploy deploy <repo-url> [--domain example.com]")
+			fmt.Println("Usage: velo-deploy deploy <repo-url> [--domain example.com] [--build-command \"npm run build\"] [--start-command \"npm run start\"]")
 			os.Exit(1)
 		}
 		repoURL := os.Args[2]
 		var domain, alias string
+		opts := deploy.Options{}
 		for i := 3; i < len(os.Args); i++ {
 			if os.Args[i] == "--domain" && i+1 < len(os.Args) {
 				domain = os.Args[i+1]
@@ -49,8 +50,16 @@ func main() {
 				alias = os.Args[i+1]
 				i++
 			}
+			if (os.Args[i] == "--build-command" || os.Args[i] == "--build-cmd") && i+1 < len(os.Args) {
+				opts.BuildCommand = os.Args[i+1]
+				i++
+			}
+			if (os.Args[i] == "--start-command" || os.Args[i] == "--start-cmd") && i+1 < len(os.Args) {
+				opts.StartCommand = os.Args[i+1]
+				i++
+			}
 		}
-		if err := deploy.Deploy(cfg, repoURL, domain, alias); err != nil {
+		if err := deploy.DeployWithOptions(cfg, repoURL, domain, alias, opts); err != nil {
 			fmt.Fprintf(os.Stderr, "Deploy failed: %v\n", err)
 			os.Exit(1)
 		}

@@ -36,6 +36,8 @@ velo-deploy deploy <repo-url> [flags]
 | `--port` | int | auto | Puerto interno (solo Node.js). |
 | `--branch` | string | default del repo | Branch a trackear. |
 | `--output-dir` | string | auto | Dir de output del build (solo estáticos). |
+| `--build-command` | string | `npm run build` | Comando de build. Alias: `--build-cmd`. |
+| `--start-command` | string | `npm run start` | Comando de start para systemd. Alias: `--start-cmd`. |
 
 ### `add`
 

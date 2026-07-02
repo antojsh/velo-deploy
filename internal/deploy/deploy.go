@@ -26,8 +26,35 @@ var (
 	removeManagedFiles = os.RemoveAll
 )
 
+const (
+	DefaultBuildCommand = "npm run build"
+	DefaultStartCommand = "npm run start"
+)
+
+type Options struct {
+	BuildCommand string
+	StartCommand string
+}
+
+func (o Options) withDefaults() Options {
+	if o.BuildCommand == "" {
+		o.BuildCommand = DefaultBuildCommand
+	}
+	if o.StartCommand == "" {
+		o.StartCommand = DefaultStartCommand
+	}
+	return o
+}
+
 // Deploy performs a full deployment from a git repository.
 func Deploy(cfg *config.Config, repoURL, domain, alias string) error {
+	return DeployWithOptions(cfg, repoURL, domain, alias, Options{})
+}
+
+// DeployWithOptions performs a full deployment from a git repository.
+func DeployWithOptions(cfg *config.Config, repoURL, domain, alias string, opts Options) error {
+	opts = opts.withDefaults()
+
 	// 1. Derive app name from repo URL
 	appName := deriveAppName(repoURL)
 
@@ -76,16 +103,22 @@ func Deploy(cfg *config.Config, repoURL, domain, alias string) error {
 		return fmt.Errorf("npm install failed: %w", err)
 	}
 
-	// 7. Determine entry point
+	// 7. Build application
+	fmt.Printf("Building application with: %s\n", opts.BuildCommand)
+	if err := deploynode.RunCommand(appDir, nodePath, opts.BuildCommand); err != nil {
+		return fmt.Errorf("build failed: %w", err)
+	}
+
+	// 8. Determine entry point for metadata/backwards compatibility
 	entryPoint := detectEntryPoint(appDir)
 
-	// 8. Assign port
+	// 9. Assign port
 	port := cfg.NextPort()
 	if port == 0 {
 		return fmt.Errorf("no free ports in range 3000-3999")
 	}
 
-	// 9. Create alias
+	// 10. Create alias
 	if alias == "" {
 		alias = appName + ".local"
 	}
@@ -93,7 +126,7 @@ func Deploy(cfg *config.Config, repoURL, domain, alias string) error {
 		fmt.Printf("Warning: could not add hosts alias: %v\n", err)
 	}
 
-	// 10. Create system user
+	// 11. Create system user
 	username := "deploy-" + appName
 	if err := systemd.CreateUser(username); err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
@@ -102,12 +135,12 @@ func Deploy(cfg *config.Config, repoURL, domain, alias string) error {
 	// Set correct ownership
 	exec.Command("chown", "-R", username+":"+username, appDir).Run()
 
-	// 11. Generate systemd service
-	if err := systemd.GenerateService(appName, nodePath, appDir, entryPoint, username, username); err != nil {
+	// 12. Generate systemd service
+	if err := systemd.GenerateCommandService(appName, nodePath, appDir, opts.StartCommand, username, username); err != nil {
 		return fmt.Errorf("failed to generate service: %w", err)
 	}
 
-	// 12. Save app metadata
+	// 13. Save app metadata
 	cfg.Apps[appName] = &config.AppMeta{
 		Name:       appName,
 		Type:       config.AppTypeNode,
@@ -119,12 +152,14 @@ func Deploy(cfg *config.Config, repoURL, domain, alias string) error {
 		Alias:      alias,
 		NodePath:   nodePath,
 		EntryPoint: entryPoint,
+		BuildCommand: opts.BuildCommand,
+		StartCommand: opts.StartCommand,
 	}
 	if err := cfg.Save(); err != nil {
 		fmt.Printf("Warning: failed to save config: %v\n", err)
 	}
 
-	// 13. Configure Caddy
+	// 14. Configure Caddy
 	upstream := fmt.Sprintf("%s:%d", alias, port)
 
 	if domain != "" {
@@ -143,7 +178,7 @@ func Deploy(cfg *config.Config, repoURL, domain, alias string) error {
 		return fmt.Errorf("failed to reload Caddy: %w", err)
 	}
 
-	// 14. Enable and start the service
+	// 15. Enable and start the service
 	if err := systemd.DaemonReload(); err != nil {
 		return fmt.Errorf("daemon-reload failed: %w", err)
 	}
@@ -277,6 +312,14 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 		return fmt.Errorf("failed to find node path: %w", err)
 	}
 
+	if err := deploynode.InstallDeps(appDir, nodePath); err != nil {
+		return fmt.Errorf("npm install failed: %w", err)
+	}
+
+	if err := deploynode.RunCommand(appDir, nodePath, DefaultBuildCommand); err != nil {
+		return fmt.Errorf("build failed: %w", err)
+	}
+
 	port := cfg.NextPort()
 	if port == 0 {
 		return fmt.Errorf("no free ports in range 3000-3999")
@@ -298,7 +341,7 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 
 	exec.Command("chown", "-R", username+":"+username, appDir).Run()
 
-	if err := systemd.GenerateService(appName, nodePath, appDir, entryPoint, username, username); err != nil {
+	if err := systemd.GenerateCommandService(appName, nodePath, appDir, DefaultStartCommand, username, username); err != nil {
 		return fmt.Errorf("failed to generate service: %w", err)
 	}
 
@@ -311,6 +354,8 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 		NodePath:   nodePath,
 		NodeVer:    nodeVer,
 		EntryPoint: entryPoint,
+		BuildCommand: DefaultBuildCommand,
+		StartCommand: DefaultStartCommand,
 	}
 
 	upstream := fmt.Sprintf("%s:%d", alias, port)
