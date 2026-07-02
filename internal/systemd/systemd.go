@@ -113,6 +113,23 @@ func StopApp(appName string) error {
 	return runCmd("systemctl", "stop", fmt.Sprintf("deploy-%s.service", appName))
 }
 
+// DisableApp disables a service from starting on boot.
+func DisableApp(appName string) error {
+	return runCmd("systemctl", "disable", fmt.Sprintf("deploy-%s.service", appName))
+}
+
+// ResetFailed clears systemd failed state for a service.
+func ResetFailed(appName string) error {
+	return runCmd("systemctl", "reset-failed", fmt.Sprintf("deploy-%s.service", appName))
+}
+
+// ServiceExists reports whether a deploy-managed unit file exists.
+func ServiceExists(appName string) bool {
+	svcPath := fmt.Sprintf("%s/deploy-%s.service", systemdDir, appName)
+	_, err := os.Stat(svcPath)
+	return err == nil
+}
+
 // RestartApp restarts a service.
 func RestartApp(appName string) error {
 	return runCmd("systemctl", "restart", fmt.Sprintf("deploy-%s.service", appName))

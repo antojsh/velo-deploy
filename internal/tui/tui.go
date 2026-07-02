@@ -181,6 +181,10 @@ type logsLoadedMsg string
 type statusLoadedMsg string
 type deployOutputMsg string
 type deployDoneMsg struct{ err error }
+type removeDoneMsg struct {
+	appName string
+	err     error
+}
 
 // ─── Model ───────────────────────────────────────────────────────────────────
 
@@ -303,6 +307,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m = m.withNotification("Deploy successful!", "ok")
 			// Reload config & app list
 			m.apps = sortedApps(m.cfg)
+		}
+		m.view = viewOutput
+		return m, nil
+
+	case removeDoneMsg:
+		m.deploying = false
+		m.apps = sortedApps(m.cfg)
+		if m.cursor >= len(m.apps) {
+			m.cursor = len(m.apps) - 1
+		}
+		if m.cursor < 0 {
+			m.cursor = 0
+		}
+		if msg.err != nil {
+			m = m.withNotification("Remove incomplete: "+msg.err.Error(), "err")
+		} else {
+			m = m.withNotification("Removed "+msg.appName+" successfully!", "ok")
 		}
 		m.view = viewOutput
 		return m, nil
@@ -628,12 +649,13 @@ func (m model) doDelete() (tea.Model, tea.Cmd) {
 	name := m.currentApp()
 	m.view = viewOutput
 	m.focus = panelRight
+	m.deploying = true
 	m.deployOutput = []string{"Removing " + name + " from config, Caddy, systemd and files..."}
 	cfg := m.cfg
 
 	return m, func() tea.Msg {
 		err := deploy.Remove(cfg, name)
-		return deployDoneMsg{err: err}
+		return removeDoneMsg{appName: name, err: err}
 	}
 }
 

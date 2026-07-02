@@ -72,19 +72,49 @@ func TestDeployDoneSuccessReloadsAppsAndShowsOutput(t *testing.T) {
 }
 
 func TestDeployDoneErrorKeepsErrorNotification(t *testing.T) {
-    m := initialModel(testConfig())
-    m.deploying = true
+	m := initialModel(testConfig())
+	m.deploying = true
 
-    updated := asModel(t, mustModel(m.Update(deployDoneMsg{err: errors.New("boom")})))
+	updated := asModel(t, mustModel(m.Update(deployDoneMsg{err: errors.New("boom")})))
 
     assert.False(t, updated.deploying)
     assert.Equal(t, viewOutput, updated.view)
-    assert.Equal(t, "err", updated.notificationKind)
-    assert.Contains(t, updated.notification, "boom")
+	assert.Equal(t, "err", updated.notificationKind)
+	assert.Contains(t, updated.notification, "boom")
+}
+
+func TestRemoveDoneReloadsAppsAndClampsCursor(t *testing.T) {
+	cfg := testConfig()
+	m := initialModel(cfg)
+	m.cursor = 1
+	m.deploying = true
+	delete(cfg.Apps, "zeta")
+
+	updated := asModel(t, mustModel(m.Update(removeDoneMsg{appName: "zeta"})))
+
+	assert.False(t, updated.deploying)
+	assert.Equal(t, []string{"alpha"}, updated.apps)
+	assert.Equal(t, 0, updated.cursor)
+	assert.Equal(t, "ok", updated.notificationKind)
+	assert.Contains(t, updated.notification, "Removed zeta successfully")
+}
+
+func TestRemoveDoneErrorStillReloadsApps(t *testing.T) {
+	cfg := testConfig()
+	m := initialModel(cfg)
+	m.deploying = true
+	delete(cfg.Apps, "alpha")
+
+	updated := asModel(t, mustModel(m.Update(removeDoneMsg{appName: "alpha", err: errors.New("cleanup failed")})))
+
+	assert.False(t, updated.deploying)
+	assert.Equal(t, []string{"zeta"}, updated.apps)
+	assert.Equal(t, "err", updated.notificationKind)
+	assert.Contains(t, updated.notification, "Remove incomplete")
 }
 
 func TestHandleKeyNavigationAndViews(t *testing.T) {
-    m := initialModel(testConfig())
+	m := initialModel(testConfig())
 
     updated := asModel(t, mustModel(m.handleKey(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})))
     assert.Equal(t, 1, updated.cursor)

@@ -559,12 +559,14 @@ func TestRemoveNodeAppDeletesAllManagedState(t *testing.T) {
     defer func() { config.ConfigDir = originalConfigDir }()
 
     calls := []string{}
-    stopApp = func(name string) error { calls = append(calls, "stop:"+name); return nil }
-    removeService = func(name string) error { calls = append(calls, "service:"+name); return nil }
-    daemonReload = func() error { calls = append(calls, "daemon-reload"); return nil }
-    removeUser = func(username string) error { calls = append(calls, "user:"+username); return nil }
-    reloadCaddy = func() error { calls = append(calls, "caddy-reload"); return nil }
-    defer resetRemoveHooks()
+	stopApp = func(name string) error { calls = append(calls, "stop:"+name); return nil }
+	disableApp = func(name string) error { calls = append(calls, "disable:"+name); return nil }
+	removeService = func(name string) error { calls = append(calls, "service:"+name); return nil }
+	daemonReload = func() error { calls = append(calls, "daemon-reload"); return nil }
+	resetFailed = func(name string) error { calls = append(calls, "reset-failed:"+name); return nil }
+	removeUser = func(username string) error { calls = append(calls, "user:"+username); return nil }
+	reloadCaddy = func() error { calls = append(calls, "caddy-reload"); return nil }
+	defer resetRemoveHooks()
 
     cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{
         "api": {Name: "api", Type: config.AppTypeNode, Alias: "api.local", Port: 3000},
@@ -578,11 +580,13 @@ func TestRemoveNodeAppDeletesAllManagedState(t *testing.T) {
     assert.True(t, os.IsNotExist(err))
     _, err = os.Stat(filepath.Join(confDir, "api.conf"))
     assert.True(t, os.IsNotExist(err))
-    assert.Contains(t, calls, "stop:api")
-    assert.Contains(t, calls, "service:api")
-    assert.Contains(t, calls, "daemon-reload")
-    assert.Contains(t, calls, "user:deploy-api")
-    assert.Contains(t, calls, "caddy-reload")
+	assert.Contains(t, calls, "stop:api")
+	assert.Contains(t, calls, "disable:api")
+	assert.Contains(t, calls, "service:api")
+	assert.Contains(t, calls, "daemon-reload")
+	assert.Contains(t, calls, "reset-failed:api")
+	assert.Contains(t, calls, "user:deploy-api")
+	assert.Contains(t, calls, "caddy-reload")
 }
 
 func TestRemoveReportsCleanupErrors(t *testing.T) {
@@ -591,15 +595,17 @@ func TestRemoveReportsCleanupErrors(t *testing.T) {
     config.ConfigDir = filepath.Join(tmpDir, "config")
     defer func() { config.ConfigDir = originalConfigDir }()
 
-    stopApp = func(name string) error { return assert.AnError }
-    removeService = func(name string) error { return nil }
-    daemonReload = func() error { return nil }
-    removeUser = func(username string) error { return nil }
-    removeCaddyConfig = func(name string) error { return nil }
-    removeHostAlias = func(alias string) error { return nil }
-    removeManagedFiles = func(path string) error { return nil }
-    reloadCaddy = func() error { return nil }
-    defer resetRemoveHooks()
+	stopApp = func(name string) error { return assert.AnError }
+	disableApp = func(name string) error { return nil }
+	removeService = func(name string) error { return nil }
+	daemonReload = func() error { return nil }
+	resetFailed = func(name string) error { return nil }
+	removeUser = func(username string) error { return nil }
+	removeCaddyConfig = func(name string) error { return nil }
+	removeHostAlias = func(alias string) error { return nil }
+	removeManagedFiles = func(path string) error { return nil }
+	reloadCaddy = func() error { return nil }
+	defer resetRemoveHooks()
 
     cfg := &config.Config{AppsDir: filepath.Join(tmpDir, "apps"), Apps: map[string]*config.AppMeta{
         "api": {Name: "api", Type: config.AppTypeNode},
@@ -609,18 +615,57 @@ func TestRemoveReportsCleanupErrors(t *testing.T) {
 
     assert.Error(t, err)
     assert.Contains(t, err.Error(), "failed to fully remove app 'api'")
-    assert.Contains(t, err.Error(), "stop systemd service")
+	assert.Contains(t, err.Error(), "stop systemd service")
+}
+
+func TestRemoveLegacyAppWithServiceDeletesSystemdLifecycle(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalConfigDir := config.ConfigDir
+	config.ConfigDir = filepath.Join(tmpDir, "config")
+	defer func() { config.ConfigDir = originalConfigDir }()
+
+	calls := []string{}
+	serviceExists = func(name string) bool { return name == "legacy" }
+	stopApp = func(name string) error { calls = append(calls, "stop:"+name); return nil }
+	disableApp = func(name string) error { calls = append(calls, "disable:"+name); return nil }
+	removeService = func(name string) error { calls = append(calls, "service:"+name); return nil }
+	daemonReload = func() error { calls = append(calls, "daemon-reload"); return nil }
+	resetFailed = func(name string) error { calls = append(calls, "reset-failed:"+name); return nil }
+	removeUser = func(username string) error { calls = append(calls, "user:"+username); return nil }
+	removeCaddyConfig = func(name string) error { return nil }
+	removeHostAlias = func(alias string) error { return nil }
+	removeManagedFiles = func(path string) error { return nil }
+	reloadCaddy = func() error { return nil }
+	defer resetRemoveHooks()
+
+	cfg := &config.Config{AppsDir: filepath.Join(tmpDir, "apps"), Apps: map[string]*config.AppMeta{
+		"legacy": {Name: "legacy"},
+	}}
+
+	err := Remove(cfg, "legacy")
+
+	assert.NoError(t, err)
+	assert.NotContains(t, cfg.Apps, "legacy")
+	assert.Contains(t, calls, "stop:legacy")
+	assert.Contains(t, calls, "disable:legacy")
+	assert.Contains(t, calls, "service:legacy")
+	assert.Contains(t, calls, "daemon-reload")
+	assert.Contains(t, calls, "reset-failed:legacy")
+	assert.Contains(t, calls, "user:deploy-legacy")
 }
 
 func resetRemoveHooks() {
-    stopApp = systemd.StopApp
-    removeService = systemd.RemoveService
-    daemonReload = systemd.DaemonReload
-    removeUser = systemd.RemoveUser
-    removeCaddyConfig = caddy.RemoveConfig
-    reloadCaddy = caddy.Reload
-    removeHostAlias = hosts.RemoveAlias
-    removeManagedFiles = os.RemoveAll
+	stopApp = systemd.StopApp
+	disableApp = systemd.DisableApp
+	removeService = systemd.RemoveService
+	daemonReload = systemd.DaemonReload
+	resetFailed = systemd.ResetFailed
+	removeUser = systemd.RemoveUser
+	serviceExists = systemd.ServiceExists
+	removeCaddyConfig = caddy.RemoveConfig
+	reloadCaddy = caddy.Reload
+	removeHostAlias = hosts.RemoveAlias
+	removeManagedFiles = os.RemoveAll
 }
 
 
