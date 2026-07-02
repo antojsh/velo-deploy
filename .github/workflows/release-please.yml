@@ -269,3 +269,23 @@ jobs:
             site/*
           fail_on_unmatched_files: false
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up autorelease: pending labels from fulfilled release PRs
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # release-please leaves the `autorelease: pending` label on a release PR
+          # after creating the release. On the next run the action re-finds that
+          # labeled PR and tries to re-fulfill it, which fails with
+          # `Validation Failed: already_exists` because the release already
+          # exists. Garbage-collect the label from any closed release PR whose
+          # corresponding release is already on GitHub.
+          for pr in $(gh pr list --state closed --label "autorelease: pending" --json number --jq '.[].number'); do
+            tag=$(gh pr view "$pr" --json title --jq '.title' | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -n1 || true)
+            if [ -n "$tag" ] && gh release view "$tag" >/dev/null 2>&1; then
+              echo "Removing autorelease: pending from PR #${pr} (release ${tag} already exists)"
+              gh pr edit "$pr" --remove-label "autorelease: pending" >/dev/null || echo "  label removal failed (non-fatal)"
+            fi
+          done
