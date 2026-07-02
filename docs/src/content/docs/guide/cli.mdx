@@ -28,6 +28,7 @@ velo-deploy deploy <repo-url> [flags]
 | --- | --- | --- |
 | `--name` | derived from repo | Override the app name. |
 | `--domain` | _empty_ | Map a real domain to the app. Triggers Let's Encrypt via Caddy. |
+| `--path` | `/` with domain, `/<name>` without domain | Mount the app under a URL path. |
 | `--alias` | `<name>.local` | Local alias for path-based access. |
 | `--port` | auto (3000-3999) | Internal Node.js port. Ignored for static sites. |
 | `--branch` | repo default | Branch to track. |
@@ -39,6 +40,7 @@ velo-deploy deploy <repo-url> [flags]
 ```bash
 velo-deploy deploy https://github.com/user/api
 velo-deploy deploy https://github.com/user/api --domain api.example.com
+velo-deploy deploy https://github.com/user/api --domain example.com --path /api
 velo-deploy deploy https://github.com/user/api --build-command "pnpm build" --start-command "pnpm start"
 velo-deploy deploy https://github.com/user/api --alias myapi.local --port 3100
 velo-deploy deploy https://github.com/user/site --name marketing-site
@@ -56,6 +58,7 @@ velo-deploy add <name> <path> [flags]
 | --- | --- |
 | `--type` | `node` or `static`. Auto-detected when omitted. |
 | `--domain` | Real domain to map. |
+| `--path` | URL path to mount the app under. |
 | `--alias` | Local alias (defaults to `<name>.local`). |
 | `--port` | Node.js port (3000-3999 range). |
 

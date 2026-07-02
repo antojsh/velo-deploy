@@ -34,6 +34,7 @@ const (
 type Options struct {
 	BuildCommand string
 	StartCommand string
+	Path         string
 }
 
 func (o Options) withDefaults() Options {
@@ -44,6 +45,47 @@ func (o Options) withDefaults() Options {
 		o.StartCommand = DefaultStartCommand
 	}
 	return o
+}
+
+func normalizePath(appName, domain, rawPath string) (string, error) {
+	path := strings.TrimSpace(rawPath)
+	if path == "" {
+		if domain != "" {
+			return "/", nil
+		}
+		return "/" + appName, nil
+	}
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	path = strings.TrimRight(path, "/")
+	if path == "" {
+		path = "/"
+	}
+	if strings.ContainsAny(path, " \t\r\n?#") || strings.Contains(path, "://") {
+		return "", fmt.Errorf("invalid path %q: use a URL path like /app", rawPath)
+	}
+	return path, nil
+}
+
+func ensurePathAvailable(cfg *config.Config, appName, domain, path string) error {
+	for name, app := range cfg.Apps {
+		if name == appName {
+			continue
+		}
+		appPath := app.Path
+		if appPath == "" {
+			if app.Domain != "" {
+				appPath = "/"
+			} else {
+				appPath = "/" + app.Name
+			}
+		}
+		if app.Domain == domain && appPath == path {
+			return fmt.Errorf("path %s is already used by app %q on this domain", path, name)
+		}
+	}
+	return nil
 }
 
 // Deploy performs a full deployment from a git repository.
@@ -57,6 +99,13 @@ func DeployWithOptions(cfg *config.Config, repoURL, domain, alias string, opts O
 
 	// 1. Derive app name from repo URL
 	appName := deriveAppName(repoURL)
+	appPath, err := normalizePath(appName, domain, opts.Path)
+	if err != nil {
+		return err
+	}
+	if err := ensurePathAvailable(cfg, appName, domain, appPath); err != nil {
+		return err
+	}
 
 	// 2. Check if already exists
 	if _, exists := cfg.Apps[appName]; exists {
@@ -149,6 +198,7 @@ func DeployWithOptions(cfg *config.Config, repoURL, domain, alias string, opts O
 		NodeVer:    nodeVer,
 		Port:       port,
 		Domain:     domain,
+		Path:       appPath,
 		Alias:      alias,
 		NodePath:   nodePath,
 		EntryPoint: entryPoint,
@@ -160,16 +210,6 @@ func DeployWithOptions(cfg *config.Config, repoURL, domain, alias string, opts O
 	}
 
 	// 14. Configure Caddy
-	upstream := fmt.Sprintf("%s:%d", alias, port)
-
-	if domain != "" {
-		// Domain-based: dedicated Caddy config with Let's Encrypt
-		if err := caddy.GenerateConfig(appName, domain, upstream); err != nil {
-			return fmt.Errorf("failed to generate Caddy config: %w", err)
-		}
-	}
-
-	// Always rebuild shared catch-all for apps without domains
 	if err := rebuildSharedCaddyConfig(cfg); err != nil {
 		return fmt.Errorf("failed to rebuild shared Caddy config: %w", err)
 	}
@@ -191,9 +231,9 @@ func DeployWithOptions(cfg *config.Config, repoURL, domain, alias string, opts O
 
 	fmt.Printf("\n✅ %s deployed successfully!\n", appName)
 	if domain != "" {
-		fmt.Printf("   URL: https://%s\n", domain)
+		fmt.Printf("   URL: https://%s%s\n", domain, appPath)
 	} else {
-		fmt.Printf("   URL: https://<tu-ip>/%s/\n", appName)
+		fmt.Printf("   URL: https://<tu-ip>%s\n", appPath)
 	}
 	fmt.Printf("   Node: %s\n", nodeVer)
 
@@ -225,6 +265,20 @@ func DetectOutputDir(appDir string) string {
 
 // Register adds an already-cloned app to deploy's management.
 func Register(cfg *config.Config, appName, appDir, domain, alias, appType string) error {
+	return RegisterWithOptions(cfg, appName, appDir, domain, alias, appType, Options{})
+}
+
+// RegisterWithOptions adds an already-cloned app to deploy's management.
+func RegisterWithOptions(cfg *config.Config, appName, appDir, domain, alias, appType string, opts Options) error {
+	opts = opts.withDefaults()
+	appPath, err := normalizePath(appName, domain, opts.Path)
+	if err != nil {
+		return err
+	}
+	if err := ensurePathAvailable(cfg, appName, domain, appPath); err != nil {
+		return err
+	}
+
 	if _, exists := cfg.Apps[appName]; exists {
 		return fmt.Errorf("app '%s' already exists. Use 'remove' first to re-register", appName)
 	}
@@ -256,23 +310,13 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 			fmt.Printf("Warning: could not add hosts alias: %v\n", err)
 		}
 
-		rootDir := appDir
-		if outputDir != "." {
-			rootDir = filepath.Join(appDir, outputDir)
-		}
-
 		meta = &config.AppMeta{
 			Name:      appName,
 			Type:      config.AppTypeStatic,
 			Domain:    domain,
+			Path:      appPath,
 			Alias:     alias,
 			OutputDir: outputDir,
-		}
-
-		if domain != "" {
-			if err := caddy.GenerateStaticConfig(appName, domain, rootDir); err != nil {
-				return fmt.Errorf("failed to generate Caddy config: %w", err)
-			}
 		}
 
 		cfg.Apps[appName] = meta
@@ -289,9 +333,9 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 
 		fmt.Printf("\n✅ %s registered successfully (static)!\n", appName)
 		if domain != "" {
-			fmt.Printf("   URL: https://%s\n", domain)
+			fmt.Printf("   URL: https://%s%s\n", domain, appPath)
 		} else {
-			fmt.Printf("   URL: https://<tu-ip>/%s/\n", appName)
+			fmt.Printf("   URL: https://<tu-ip>%s\n", appPath)
 		}
 		fmt.Printf("   Output: %s\n", outputDir)
 		return nil
@@ -350,19 +394,13 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 		Type:       config.AppTypeNode,
 		Port:       port,
 		Domain:     domain,
+		Path:       appPath,
 		Alias:      alias,
 		NodePath:   nodePath,
 		NodeVer:    nodeVer,
 		EntryPoint: entryPoint,
 		BuildCommand: DefaultBuildCommand,
 		StartCommand: DefaultStartCommand,
-	}
-
-	upstream := fmt.Sprintf("%s:%d", alias, port)
-	if domain != "" {
-		if err := caddy.GenerateConfig(appName, domain, upstream); err != nil {
-			return fmt.Errorf("failed to generate Caddy config: %w", err)
-		}
 	}
 
 	cfg.Apps[appName] = meta
@@ -389,9 +427,9 @@ func Register(cfg *config.Config, appName, appDir, domain, alias, appType string
 
 	fmt.Printf("\n✅ %s registered successfully (node)!\n", appName)
 	if domain != "" {
-		fmt.Printf("   URL: https://%s\n", domain)
+		fmt.Printf("   URL: https://%s%s\n", domain, appPath)
 	} else {
-		fmt.Printf("   URL: https://<tu-ip>/%s/\n", appName)
+		fmt.Printf("   URL: https://<tu-ip>%s\n", appPath)
 	}
 	fmt.Printf("   Node: %s\n", nodeVer)
 
@@ -455,19 +493,27 @@ func Remove(cfg *config.Config, appName string) error {
 	return nil
 }
 
-// rebuildSharedCaddyConfig regenerates the catch-all config for all apps without domains.
+// rebuildSharedCaddyConfig regenerates Caddy path routing for every app.
 func rebuildSharedCaddyConfig(cfg *config.Config) error {
 	var routes []caddy.Route
 	for _, app := range cfg.Apps {
-		if app.Domain == "" {
-			route := caddy.Route{
-				AppName:  app.Name,
-				Upstream: fmt.Sprintf("%s:%d", app.Alias, app.Port),
-				Type:     app.Type,
-				RootDir:  filepath.Join(cfg.AppsDir, app.Name, app.OutputDir),
+		path := app.Path
+		if path == "" {
+			if app.Domain != "" {
+				path = "/"
+			} else {
+				path = "/" + app.Name
 			}
-			routes = append(routes, route)
 		}
+		route := caddy.Route{
+			AppName:  app.Name,
+			Upstream: fmt.Sprintf("%s:%d", app.Alias, app.Port),
+			Domain:   app.Domain,
+			Path:     path,
+			Type:     app.Type,
+			RootDir:  filepath.Join(cfg.AppsDir, app.Name, app.OutputDir),
+		}
+		routes = append(routes, route)
 	}
 
 	if len(routes) == 0 {

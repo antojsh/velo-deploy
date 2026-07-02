@@ -35,7 +35,7 @@ func main() {
 		fmt.Printf("velo-deploy %s\n", version)
 	case "deploy":
 		if len(os.Args) < 3 {
-			fmt.Println("Usage: velo-deploy deploy <repo-url> [--domain example.com] [--build-command \"npm run build\"] [--start-command \"npm run start\"]")
+			fmt.Println("Usage: velo-deploy deploy <repo-url> [--domain example.com] [--path /app] [--build-command \"npm run build\"] [--start-command \"npm run start\"]")
 			os.Exit(1)
 		}
 		repoURL := os.Args[2]
@@ -48,6 +48,10 @@ func main() {
 			}
 			if os.Args[i] == "--alias" && i+1 < len(os.Args) {
 				alias = os.Args[i+1]
+				i++
+			}
+			if os.Args[i] == "--path" && i+1 < len(os.Args) {
+				opts.Path = os.Args[i+1]
 				i++
 			}
 			if (os.Args[i] == "--build-command" || os.Args[i] == "--build-cmd") && i+1 < len(os.Args) {
@@ -65,15 +69,20 @@ func main() {
 		}
 	case "add":
 		if len(os.Args) < 4 {
-			fmt.Println("Usage: velo-deploy add <name> <directory> [--domain example.com] [--type auto|static|node]")
+			fmt.Println("Usage: velo-deploy add <name> <directory> [--domain example.com] [--path /app] [--type auto|static|node]")
 			os.Exit(1)
 		}
 		appName := os.Args[2]
 		appDir := os.Args[3]
 		var domain, appType string
+		opts := deploy.Options{}
 		for i := 4; i < len(os.Args); i++ {
 			if os.Args[i] == "--domain" && i+1 < len(os.Args) {
 				domain = os.Args[i+1]
+				i++
+			}
+			if os.Args[i] == "--path" && i+1 < len(os.Args) {
+				opts.Path = os.Args[i+1]
 				i++
 			}
 			if os.Args[i] == "--type" && i+1 < len(os.Args) {
@@ -81,7 +90,7 @@ func main() {
 				i++
 			}
 		}
-		if err := deploy.Register(cfg, appName, appDir, domain, "", appType); err != nil {
+		if err := deploy.RegisterWithOptions(cfg, appName, appDir, domain, "", appType, opts); err != nil {
 			fmt.Fprintf(os.Stderr, "Add failed: %v\n", err)
 			os.Exit(1)
 		}

@@ -33,6 +33,7 @@ type AppMeta struct {
 	NodeVer    string `json:"node_version"`
 	Port       int    `json:"port"`
 	Domain     string `json:"domain"`
+	Path       string `json:"path"`
 	Alias      string `json:"alias"`
 	NodePath   string `json:"node_path"`
 	EntryPoint string `json:"entry_point"`   // e.g. "index.js" or "server.js"

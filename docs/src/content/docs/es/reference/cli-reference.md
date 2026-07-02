@@ -32,6 +32,7 @@ velo-deploy deploy <repo-url> [flags]
 | --- | --- | --- | --- |
 | `--name` | string | derivado | Override del nombre de la app. |
 | `--domain` | string | _vacío_ | Dominio público. |
+| `--path` | string | `/` con dominio, `/<name>` sin dominio | Path de URL donde montar la app. |
 | `--alias` | string | `<name>.local` | Alias local. |
 | `--port` | int | auto | Puerto interno (solo Node.js). |
 | `--branch` | string | default del repo | Branch a trackear. |
@@ -49,6 +50,7 @@ velo-deploy add <name> <path> [flags]
 | --- | --- | --- | --- |
 | `--type` | `node` \| `static` | auto-detect | Tipo de app. |
 | `--domain` | string | _vacío_ | Dominio público. |
+| `--path` | string | `/` con dominio, `/<name>` sin dominio | Path de URL donde montar la app. |
 | `--alias` | string | `<name>.local` | Alias local. |
 | `--port` | int | auto | Puerto interno (solo Node.js). |
 | `--output-dir` | string | auto | Dir de output del build (solo estáticos). |

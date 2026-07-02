@@ -807,8 +807,18 @@ func (m model) renderDetail() string {
 	}
 
 	url := fmt.Sprintf("https://<server-ip>/%s/", name)
+	appPath := app.Path
+	if appPath == "" {
+		if app.Domain != "" {
+			appPath = "/"
+		} else {
+			appPath = "/" + app.Name
+		}
+	}
 	if app.Domain != "" {
-		url = "https://" + app.Domain
+		url = "https://" + app.Domain + appPath
+	} else {
+		url = "https://<server-ip>" + appPath
 	}
 
 	isStatic := app.Type == config.AppTypeStatic

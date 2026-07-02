@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -20,6 +21,7 @@ type Route struct {
 	AppName   string
 	Upstream  string // e.g. "myapp.local:3000"
 	Domain    string // empty = path-based
+	Path      string // e.g. "/myapp"
 	Type      string // "node" | "static"
 	RootDir   string // e.g. "/opt/deploy/apps/myapp/dist" (for static)
 }
@@ -73,29 +75,66 @@ func RebuildSharedConfig(routes []Route) error {
 		return nil
 	}
 
-	var sb strings.Builder
-	sb.WriteString(":443 {\n")
-	sb.WriteString("    tls internal\n\n")
-
+	grouped := make(map[string][]Route)
 	for _, r := range routes {
-		if r.Type == "static" {
-			sb.WriteString(fmt.Sprintf("    handle_path /%s/* {\n", r.AppName))
-			sb.WriteString(fmt.Sprintf("        root * %s\n", r.RootDir))
-			sb.WriteString("        file_server\n")
-			sb.WriteString("    }\n\n")
-		} else {
-			sb.WriteString(fmt.Sprintf("    handle_path /%s/* {\n", r.AppName))
-			sb.WriteString(fmt.Sprintf("        reverse_proxy %s\n", r.Upstream))
-			sb.WriteString("    }\n\n")
-		}
+		grouped[r.Domain] = append(grouped[r.Domain], r)
 	}
 
-	sb.WriteString("    handle {\n")
-	sb.WriteString("        respond 404\n")
-	sb.WriteString("    }\n")
-	sb.WriteString("}\n")
+	var domains []string
+	for domain := range grouped {
+		domains = append(domains, domain)
+	}
+	sort.Strings(domains)
+
+	var sb strings.Builder
+	for _, domain := range domains {
+		site := domain
+		if site == "" {
+			site = ":443"
+		}
+		sb.WriteString(site + " {\n")
+		if domain == "" {
+			sb.WriteString("    tls internal\n\n")
+		}
+
+		domainRoutes := grouped[domain]
+		sort.Slice(domainRoutes, func(i, j int) bool {
+			return routePath(domainRoutes[i]) < routePath(domainRoutes[j])
+		})
+		for _, r := range domainRoutes {
+			writeRoute(&sb, r)
+		}
+
+		sb.WriteString("    handle {\n")
+		sb.WriteString("        respond 404\n")
+		sb.WriteString("    }\n")
+		sb.WriteString("}\n\n")
+	}
 
 	return os.WriteFile(sharedPath, []byte(sb.String()), 0644)
+}
+
+func writeRoute(sb *strings.Builder, r Route) {
+	path := routePath(r)
+	if path == "/" {
+		sb.WriteString("    handle {\n")
+	} else {
+		sb.WriteString(fmt.Sprintf("    handle_path %s/* {\n", path))
+	}
+	if r.Type == "static" {
+		sb.WriteString(fmt.Sprintf("        root * %s\n", r.RootDir))
+		sb.WriteString("        file_server\n")
+	} else {
+		sb.WriteString(fmt.Sprintf("        reverse_proxy %s\n", r.Upstream))
+	}
+	sb.WriteString("    }\n\n")
+}
+
+func routePath(r Route) string {
+	if r.Path != "" {
+		return r.Path
+	}
+	return "/" + r.AppName
 }
 
 // RemoveSharedConfig removes the shared catch-all config.

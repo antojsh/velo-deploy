@@ -56,6 +56,56 @@ func TestDeployOptionsKeepCustomCommands(t *testing.T) {
 	assert.Equal(t, "pnpm start", opts.StartCommand)
 }
 
+func TestNormalizePathDefaults(t *testing.T) {
+	path, err := normalizePath("api", "", "")
+	assert.NoError(t, err)
+	assert.Equal(t, "/api", path)
+
+	path, err = normalizePath("api", "example.com", "")
+	assert.NoError(t, err)
+	assert.Equal(t, "/", path)
+}
+
+func TestNormalizePathCustom(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{name: "adds leading slash", input: "admin", expected: "/admin"},
+		{name: "keeps leading slash", input: "/admin", expected: "/admin"},
+		{name: "trims trailing slash", input: "/admin/", expected: "/admin"},
+		{name: "allows root", input: "/", expected: "/"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path, err := normalizePath("api", "example.com", tt.input)
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, path)
+		})
+	}
+}
+
+func TestNormalizePathRejectsInvalidPath(t *testing.T) {
+	_, err := normalizePath("api", "example.com", "/bad path")
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid path")
+}
+
+func TestEnsurePathAvailableRejectsDuplicateDomainPath(t *testing.T) {
+	cfg := &config.Config{Apps: map[string]*config.AppMeta{
+		"api": {Name: "api", Domain: "example.com", Path: "/api"},
+	}}
+
+	err := ensurePathAvailable(cfg, "admin", "example.com", "/api")
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "already used")
+}
+
 func TestDetectEntryPoint(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -379,10 +429,13 @@ func TestRegister_StaticWithDomainPersistsMetadataAndCaddyConfig(t *testing.T) {
     assert.Equal(t, config.AppTypeStatic, cfg.Apps["site"].Type)
     assert.Equal(t, "dist", cfg.Apps["site"].OutputDir)
     assert.Equal(t, "site.example.com", cfg.Apps["site"].Domain)
+    assert.Equal(t, "/", cfg.Apps["site"].Path)
 
-    caddyConfig, err := os.ReadFile(filepath.Join(confDir, "site.conf"))
+    caddyConfig, err := os.ReadFile(filepath.Join(confDir, "_shared.conf"))
     require.NoError(t, err)
     assert.Contains(t, string(caddyConfig), "site.example.com")
+    assert.Contains(t, string(caddyConfig), "handle {")
+    assert.Contains(t, string(caddyConfig), "root * "+distDir)
     assert.Contains(t, string(caddyConfig), "file_server")
 }
 
