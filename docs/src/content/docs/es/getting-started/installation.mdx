@@ -35,7 +35,7 @@ Velo Deploy corre en un VPS Linux y orquesta tres servicios del sistema: el bina
 2. EjecutÃ¡ el instalador. Descarga la Ãºltima release, valida los checksums y registra la unidad systemd de `velo-deploy-watcher`.
 
 	```bash
-	curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
+	curl -fsSL https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | sudo bash
 	```
 
 3. VerificÃ¡ la instalaciÃ³n.
@@ -54,8 +54,8 @@ UsÃ¡ el flujo manual cuando quieras pinear una versiÃ³n especÃ­fica o corr
 <Tabs syncKey="install-method">
 	<TabItem label="Desde un tarball" icon="seti:default">
 		```bash
-		VER=$(curl -sS https://api.github.com/repos/antojsh/velo-deploy/releases/latest | grep tag_name | cut -d '"' -f 4)
-		curl -sSLo velo-deploy.tar.gz "https://github.com/antojsh/velo-deploy/releases/download/${VER}/velo-deploy_${VER#v}_linux_amd64.tar.gz"
+		VER=$(curl -fsSL https://api.github.com/repos/antojsh/velo-deploy/releases/latest | grep tag_name | cut -d '"' -f 4)
+		curl -fsSLo velo-deploy.tar.gz "https://github.com/antojsh/velo-deploy/releases/download/${VER}/velo-deploy_${VER#v}_linux_amd64.tar.gz"
 		tar -xzf velo-deploy.tar.gz
 		sudo install -m 0755 velo-deploy /usr/local/bin/velo-deploy
 		sudo ./install.sh

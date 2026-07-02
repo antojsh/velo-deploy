@@ -4,7 +4,7 @@ set -e
 
 # ==========================================
 # velo-deploy installer
-# curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
+# curl -fsSL https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | sudo bash
 # ==========================================
 #
 # Env vars:
@@ -136,7 +136,8 @@ if [ "$TAG" = "latest" ]; then
   TAG=$(find_latest_cli_release)
   if [ -z "$TAG" ]; then
     log_error "Could not find a release with a velo-deploy binary for ${OS}/${ARCH}."
-    log_error "Pin a specific version: VELO_DEPLOY_VERSION=v0.1.0 bash install.sh"
+    log_error "The latest releases do not include a Linux binary for ${OS}/${ARCH}."
+    log_error "Check the release assets or pin a known-good version with: VELO_DEPLOY_VERSION=vX.Y.Z sudo bash install.sh"
     exit 1
   fi
 fi
