@@ -383,3 +383,68 @@ func TestWebhookPayload_BothBranchesWork(t *testing.T) {
 		assert.True(t, isMainOrMaster)
 	}
 }
+
+func TestWebhookHandler_ActualHandlerRejectsNonPost(t *testing.T) {
+    cfg := &config.Config{Apps: map[string]*config.AppMeta{}}
+    req := httptest.NewRequest(http.MethodGet, "/webhook", nil)
+    rr := httptest.NewRecorder()
+
+    webhookHandler(cfg).ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusMethodNotAllowed, rr.Code)
+    assert.Contains(t, rr.Body.String(), "Only POST allowed")
+}
+
+func TestWebhookHandler_ActualHandlerRejectsInvalidJSON(t *testing.T) {
+    cfg := &config.Config{Apps: map[string]*config.AppMeta{}}
+    req := httptest.NewRequest(http.MethodPost, "/webhook", bytes.NewBufferString("not json"))
+    rr := httptest.NewRecorder()
+
+    webhookHandler(cfg).ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusBadRequest, rr.Code)
+    assert.Contains(t, rr.Body.String(), "Invalid JSON")
+}
+
+func TestWebhookHandler_ActualHandlerIgnoresNonMainBranches(t *testing.T) {
+    cfg := &config.Config{Apps: map[string]*config.AppMeta{}}
+    payload := `{"ref":"refs/heads/feature","repository":{"clone_url":"https://github.com/user/myapp.git","name":"myapp"}}`
+    req := httptest.NewRequest(http.MethodPost, "/webhook", bytes.NewBufferString(payload))
+    rr := httptest.NewRecorder()
+
+    webhookHandler(cfg).ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusOK, rr.Code)
+    assert.Contains(t, rr.Body.String(), "ignored branch")
+}
+
+func TestWebhookHandler_ActualHandlerReportsUnknownApp(t *testing.T) {
+    cfg := &config.Config{Apps: map[string]*config.AppMeta{}}
+    payload := `{"ref":"refs/heads/main","repository":{"clone_url":"https://github.com/user/myapp.git","name":"myapp"}}`
+    req := httptest.NewRequest(http.MethodPost, "/webhook", bytes.NewBufferString(payload))
+    rr := httptest.NewRecorder()
+
+    webhookHandler(cfg).ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusOK, rr.Code)
+    assert.Contains(t, rr.Body.String(), "app not found")
+}
+
+func TestWebhookHandler_ActualHandlerStartsKnownAppDeploy(t *testing.T) {
+    tmpDir := t.TempDir()
+    cfg := &config.Config{
+        AppsDir: tmpDir,
+        Apps: map[string]*config.AppMeta{
+            "myapp": {Name: "myapp", Type: config.AppTypeNode, NodeVer: "20", EntryPoint: "index.js"},
+        },
+    }
+    require.NoError(t, os.Mkdir(filepath.Join(tmpDir, "myapp"), 0755))
+    payload := `{"ref":"refs/heads/master","repository":{"clone_url":"https://github.com/user/myapp.git","name":"myapp"}}`
+    req := httptest.NewRequest(http.MethodPost, "/webhook", bytes.NewBufferString(payload))
+    rr := httptest.NewRecorder()
+
+    webhookHandler(cfg).ServeHTTP(rr, req)
+
+    assert.Equal(t, http.StatusOK, rr.Code)
+    assert.Contains(t, rr.Body.String(), "deploying")
+}

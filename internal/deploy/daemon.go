@@ -27,7 +27,13 @@ type webhookPayload struct {
 func RunDaemon(cfg *config.Config, port string) error {
 	fmt.Printf("Starting deploy daemon on :%s\n", port)
 
-	http.HandleFunc("/webhook", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/webhook", webhookHandler(cfg))
+
+	return http.ListenAndServe(":"+port, nil)
+}
+
+func webhookHandler(cfg *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 			return
@@ -74,9 +80,7 @@ func RunDaemon(cfg *config.Config, port string) error {
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("deploying..."))
-	})
-
-	return http.ListenAndServe(":"+port, nil)
+	}
 }
 
 func autoDeploy(cfg *config.Config, app *config.AppMeta) error {
