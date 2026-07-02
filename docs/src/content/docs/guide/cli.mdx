@@ -31,12 +31,15 @@ velo-deploy deploy <repo-url> [flags]
 | `--alias` | `<name>.local` | Local alias for path-based access. |
 | `--port` | auto (3000-3999) | Internal Node.js port. Ignored for static sites. |
 | `--branch` | repo default | Branch to track. |
+| `--build-command` | `npm run build` | Build command executed after dependency installation. Alias: `--build-cmd`. |
+| `--start-command` | `npm run start` | Start command written to the systemd service. Alias: `--start-cmd`. |
 
 **Examples**
 
 ```bash
 velo-deploy deploy https://github.com/user/api
 velo-deploy deploy https://github.com/user/api --domain api.example.com
+velo-deploy deploy https://github.com/user/api --build-command "pnpm build" --start-command "pnpm start"
 velo-deploy deploy https://github.com/user/api --alias myapi.local --port 3100
 velo-deploy deploy https://github.com/user/site --name marketing-site
 ```

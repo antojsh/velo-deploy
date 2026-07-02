@@ -155,11 +155,23 @@ func GetNodePath(nvmDir, version string) (string, error) {
 func InstallDeps(workDir, nodePath string) error {
 	nodeDir := filepath.Dir(nodePath)
 	npmPath := filepath.Join(nodeDir, "npm")
-	cmd := exec.Command(npmPath, "install", "--production")
+	cmd := exec.Command(npmPath, "install")
 	cmd.Dir = workDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	// Prepend node's bin dir to PATH so npm scripts can find 'node'
+	cmd.Env = append(os.Environ(), "PATH="+nodeDir+":"+os.Getenv("PATH"))
+	return cmd.Run()
+}
+
+// RunCommand runs a package command in the given directory with Node's bin dir
+// at the front of PATH. This is used for build commands such as "npm run build".
+func RunCommand(workDir, nodePath, command string) error {
+	nodeDir := filepath.Dir(nodePath)
+	cmd := exec.Command("bash", "-lc", command)
+	cmd.Dir = workDir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Env = append(os.Environ(), "PATH="+nodeDir+":"+os.Getenv("PATH"))
 	return cmd.Run()
 }

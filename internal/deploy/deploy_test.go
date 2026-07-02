@@ -39,6 +39,23 @@ func TestDeriveAppName(t *testing.T) {
 	}
 }
 
+func TestDeployOptionsDefaults(t *testing.T) {
+	opts := (Options{}).withDefaults()
+
+	assert.Equal(t, DefaultBuildCommand, opts.BuildCommand)
+	assert.Equal(t, DefaultStartCommand, opts.StartCommand)
+}
+
+func TestDeployOptionsKeepCustomCommands(t *testing.T) {
+	opts := (Options{
+		BuildCommand: "pnpm build",
+		StartCommand: "pnpm start",
+	}).withDefaults()
+
+	assert.Equal(t, "pnpm build", opts.BuildCommand)
+	assert.Equal(t, "pnpm start", opts.StartCommand)
+}
+
 func TestDetectEntryPoint(t *testing.T) {
 	tmpDir := t.TempDir()
 

@@ -46,6 +46,43 @@ WantedBy=multi-user.target
 	return os.WriteFile(svcPath, []byte(unit), 0644)
 }
 
+// GenerateCommandService creates a systemd unit file that starts an app through
+// a shell command such as "npm run start".
+func GenerateCommandService(appName, nodePath, workDir, startCommand, username, group string) error {
+	nodeDir := filepath.Dir(nodePath)
+	unit := fmt.Sprintf(`[Unit]
+Description=Deploy managed app: %s
+After=network.target
+
+[Service]
+Type=simple
+User=%s
+Group=%s
+WorkingDirectory=%s
+ExecStart=/bin/bash -lc %s
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+Environment=PATH=%s:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Sandboxing
+ProtectSystem=full
+PrivateTmp=true
+NoNewPrivileges=true
+ReadWritePaths=%s %s
+
+[Install]
+WantedBy=multi-user.target
+`, appName, username, group, workDir, shellQuote("exec "+startCommand), nodeDir, workDir, nodeDir)
+
+	svcPath := fmt.Sprintf("%s/deploy-%s.service", systemdDir, appName)
+	return os.WriteFile(svcPath, []byte(unit), 0644)
+}
+
+func shellQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
+}
+
 // RemoveService deletes the systemd unit file.
 // Missing file is not an error (idempotent).
 func RemoveService(appName string) error {

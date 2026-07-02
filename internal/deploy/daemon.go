@@ -118,6 +118,15 @@ func autoDeploy(cfg *config.Config, app *config.AppMeta) error {
 		return fmt.Errorf("npm install failed: %w", err)
 	}
 
+	buildCommand := app.BuildCommand
+	if buildCommand == "" {
+		buildCommand = DefaultBuildCommand
+	}
+	fmt.Printf("[%s] Building with: %s\n", app.Name, buildCommand)
+	if err := deploynode.RunCommand(appDir, nodePath, buildCommand); err != nil {
+		return fmt.Errorf("build failed: %w", err)
+	}
+
 	// 5. Set ownership
 	username := "deploy-" + app.Name
 	exec.Command("chown", "-R", username+":"+username, appDir).Run()
@@ -128,7 +137,11 @@ func autoDeploy(cfg *config.Config, app *config.AppMeta) error {
 	cfg.Save()
 
 	// 7. Regenerate service file (in case node path changed)
-	systemd.GenerateService(app.Name, nodePath, appDir, app.EntryPoint, username, username)
+	startCommand := app.StartCommand
+	if startCommand == "" {
+		startCommand = DefaultStartCommand
+	}
+	systemd.GenerateCommandService(app.Name, nodePath, appDir, startCommand, username, username)
 	systemd.DaemonReload()
 
 	// 8. Restart the app

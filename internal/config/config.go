@@ -37,6 +37,8 @@ type AppMeta struct {
 	NodePath   string `json:"node_path"`
 	EntryPoint string `json:"entry_point"`   // e.g. "index.js" or "server.js"
 	OutputDir  string `json:"output_dir"`   // e.g. "dist", "build", "_site" (for static)
+	BuildCommand string `json:"build_command"` // e.g. "npm run build"
+	StartCommand string `json:"start_command"` // e.g. "npm run start"
 }
 
 const (

@@ -56,6 +56,27 @@ func TestGenerateService_NodePathExtraction(t *testing.T) {
 	assert.Contains(t, string(content), "ExecStart=/opt/nvm/versions/node/v20.0.0/bin/node server.js")
 }
 
+func TestGenerateCommandService(t *testing.T) {
+	tmpDir := t.TempDir()
+	svcPath := filepath.Join(tmpDir, "deploy-web.service")
+
+	originalSystemdDir := systemdDir
+	systemdDir = tmpDir
+	defer func() { systemdDir = originalSystemdDir }()
+
+	err := GenerateCommandService("web", "/opt/deploy/node/24/bin/node", "/opt/deploy/apps/web", "npm run start", "deploy-web", "deploy-web")
+	assert.NoError(t, err)
+
+	content, err := os.ReadFile(svcPath)
+	require.NoError(t, err)
+
+	unit := string(content)
+	assert.Contains(t, unit, "WorkingDirectory=/opt/deploy/apps/web")
+	assert.Contains(t, unit, "ExecStart=/bin/bash -lc 'exec npm run start'")
+	assert.Contains(t, unit, "PATH=/opt/deploy/node/24/bin")
+	assert.Contains(t, unit, "ReadWritePaths=/opt/deploy/apps/web /opt/deploy/node/24/bin")
+}
+
 func TestRemoveService(t *testing.T) {
 	tmpDir := t.TempDir()
 	svcPath := filepath.Join(tmpDir, "deploy-test.service")
