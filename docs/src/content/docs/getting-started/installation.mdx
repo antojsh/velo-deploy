@@ -35,7 +35,7 @@ Velo Deploy runs on a Linux VPS and orchestrates three system services: the `vel
 2. Run the installer. It downloads the latest release, validates checksums, and registers the `velo-deploy-watcher` systemd unit.
 
 	```bash
-	curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
+	curl -fsSL https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | sudo bash
 	```
 
 3. Verify the install.
@@ -54,8 +54,8 @@ Use the manual flow when you want to pin a specific version or run from source.
 <Tabs syncKey="install-method">
 	<TabItem label="From a release tarball" icon="seti:default">
 		```bash
-		VER=$(curl -sS https://api.github.com/repos/antojsh/velo-deploy/releases/latest | grep tag_name | cut -d '"' -f 4)
-		curl -sSLo velo-deploy.tar.gz "https://github.com/antojsh/velo-deploy/releases/download/${VER}/velo-deploy_${VER#v}_linux_amd64.tar.gz"
+		VER=$(curl -fsSL https://api.github.com/repos/antojsh/velo-deploy/releases/latest | grep tag_name | cut -d '"' -f 4)
+		curl -fsSLo velo-deploy.tar.gz "https://github.com/antojsh/velo-deploy/releases/download/${VER}/velo-deploy_${VER#v}_linux_amd64.tar.gz"
 		tar -xzf velo-deploy.tar.gz
 		sudo install -m 0755 velo-deploy /usr/local/bin/velo-deploy
 		sudo ./install.sh

@@ -1,4 +1,4 @@
----
+﻿---
 title: Upgrade
 description: Upgrade the velo-deploy binary and the system-wide services.
 ---
@@ -12,10 +12,10 @@ There are two things to keep up to date:
 
 ## Upgrade in place
 
-The recommended way to upgrade is to re-run the one-liner installer. It is idempotent — running it on an existing install upgrades the binary and the watcher unit without touching your apps.
+The recommended way to upgrade is to re-run the one-liner installer. It is idempotent â€” running it on an existing install upgrades the binary and the watcher unit without touching your apps.
 
 ```bash
-curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
+curl -fsSL https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | sudo bash
 ```
 
 This:
@@ -38,7 +38,7 @@ If you need to upgrade to a specific version (for example, to test a release can
 
 ```bash
 VER=v0.4.0
-curl -sSLo velo-deploy.tar.gz \
+curl -fsSLo velo-deploy.tar.gz \
   "https://github.com/antojsh/velo-deploy/releases/download/${VER}/velo-deploy_${VER#v}_linux_amd64.tar.gz"
 sudo install -m 0755 velo-deploy /usr/local/bin/velo-deploy
 sudo systemctl restart velo-deploy-watcher

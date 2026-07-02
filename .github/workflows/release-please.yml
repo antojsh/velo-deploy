@@ -151,7 +151,7 @@ jobs:
       - name: Upload binary artifact
         uses: actions/upload-artifact@v7
         with:
-          name: velo-deploy-binaries
+          name: velo-deploy-binary-${{ matrix.os }}-${{ matrix.arch }}
           path: |
             velo-deploy_${{ steps.version.outputs.version }}_${{ matrix.os }}_${{ matrix.arch }}.${{ matrix.ext }}
           if-no-files-found: error
@@ -215,7 +215,7 @@ jobs:
       - name: Download binaries
         uses: actions/download-artifact@v8
         with:
-          name: velo-deploy-binaries
+          pattern: velo-deploy-binary-*
           path: dist
           merge-multiple: true
 
@@ -240,6 +240,26 @@ jobs:
           find . -maxdepth 1 -type f \( -name '*.tar.gz' -o -name '*.zip' \) -print0 \
             | xargs -0 sha256sum > SHA256SUMS
           cat SHA256SUMS
+
+      - name: Verify required release assets
+        working-directory: dist
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          VERSION="${TAG#v}"
+          required=(
+            "velo-deploy_${VERSION}_linux_amd64.tar.gz"
+            "velo-deploy_${VERSION}_linux_arm64.tar.gz"
+            "velo-deploy-install.sh"
+          )
+          for file in "${required[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "Missing required release asset: $file" >&2
+              ls -la
+              exit 1
+            fi
+          done
 
       - name: Show artifacts
         run: |

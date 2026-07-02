@@ -112,7 +112,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: velo-deploy-binaries
+          name: velo-deploy-binary-${{ matrix.os }}-${{ matrix.arch }}
           path: |
             velo-deploy_${{ steps.version.outputs.version }}_${{ matrix.os }}_${{ matrix.arch }}.${{ matrix.ext }}
           if-no-files-found: error

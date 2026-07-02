@@ -50,7 +50,7 @@ Velo Deploy packages that boring, powerful foundation into a workflow developers
   </div>
 
 ```bash
-curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
+curl -fsSL https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | sudo bash
 velo-deploy deploy https://github.com/your/node-or-static-site
 git push origin main
 ```

@@ -50,7 +50,7 @@ Velo Deploy empaqueta esa base aburrida, potente y confiable en un flujo que un 
   </div>
 
 ```bash
-curl -sS https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | bash
+curl -fsSL https://github.com/antojsh/velo-deploy/releases/latest/download/velo-deploy-install.sh | sudo bash
 velo-deploy deploy https://github.com/tu/app-node-o-sitio-estatico
 git push origin main
 ```
