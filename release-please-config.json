@@ -6,7 +6,7 @@
   "draft": false,
   "prerelease": false,
   "changelog-type": "github",
-  "release-label": "autorelease: pending",
+  "release-label": "velo-release: pending",
   "bootstrap-sha": "",
   "packages": {
     ".": {
@@ -16,11 +16,6 @@
       "extra-files": [
         "go.mod"
       ]
-    },
-    "docs": {
-      "package-name": "velo-deploy-docs",
-      "release-type": "node",
-      "changelog-path": "docs/CHANGELOG.md"
     }
   }
 }
