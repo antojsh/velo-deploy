@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This file is automatically updated by [release-please](https://github.com/googleapis/release-please) on every release. Do not edit it manually — write a [Conventional Commit](https://www.conventionalcommits.org/) instead and the bot will roll it up.
 
+## 0.4.2 (2026-07-08)
+
+## What's Changed
+* chore(deps): bump the astro group in /docs with 2 updates by @dependabot[bot] in https://github.com/antojsh/velo-deploy/pull/44
+* chore(deps): bump DavidAnson/markdownlint-cli2-action from 23 to 24 in the github-actions group by @dependabot[bot] in https://github.com/antojsh/velo-deploy/pull/43
+
+
+**Full Changelog**: https://github.com/antojsh/velo-deploy/compare/v0.4.1...v0.4.2
+
 ## 0.4.1 (2026-07-02)
 
 ## What's Changed
