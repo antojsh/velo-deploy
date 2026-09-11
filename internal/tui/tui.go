@@ -18,15 +18,15 @@ import (
 // ─── Palette ────────────────────────────────────────────────────────────────
 
 var (
-	colorPrimary  = lipgloss.Color("#5FAFFF")
-	colorGreen    = lipgloss.Color("#50FA7B")
-	colorRed      = lipgloss.Color("#FF5555")
-	colorOrange   = lipgloss.Color("#FFB86C")
-	colorMuted    = lipgloss.Color("#6272A4")
-	colorBgSel    = lipgloss.Color("#313145")
-	colorBorder   = lipgloss.Color("#44475A")
-	colorWhite    = lipgloss.Color("#F8F8F2")
-	colorDim      = lipgloss.Color("#888899")
+	colorPrimary = lipgloss.Color("#5FAFFF")
+	colorGreen   = lipgloss.Color("#50FA7B")
+	colorRed     = lipgloss.Color("#FF5555")
+	colorOrange  = lipgloss.Color("#FFB86C")
+	colorMuted   = lipgloss.Color("#6272A4")
+	colorBgSel   = lipgloss.Color("#313145")
+	colorBorder  = lipgloss.Color("#44475A")
+	colorWhite   = lipgloss.Color("#F8F8F2")
+	colorDim     = lipgloss.Color("#888899")
 )
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
@@ -189,11 +189,11 @@ type removeDoneMsg struct {
 // ─── Model ───────────────────────────────────────────────────────────────────
 
 type model struct {
-	cfg     *config.Config
-	apps    []string // sorted app names
-	cursor  int
-	focus   int    // panelLeft or panelRight
-	view    string // active right-panel view
+	cfg    *config.Config
+	apps   []string // sorted app names
+	cursor int
+	focus  int    // panelLeft or panelRight
+	view   string // active right-panel view
 
 	// terminal size
 	width  int
@@ -207,12 +207,12 @@ type model struct {
 	statusText string
 
 	// new-deploy form
-	formFields  [3]inputField
-	formFocus   int // 0=repo 1=domain 2=alias
+	formFields [3]inputField
+	formFocus  int // 0=repo 1=domain 2=alias
 
 	// add-existing form
-	addFields   [4]inputField
-	addFocus    int // 0=name 1=dir 2=domain 3=alias/type
+	addFields [4]inputField
+	addFocus  int // 0=name 1=dir 2=domain 3=alias/type
 
 	// confirm delete
 	confirmSel int // 0=yes 1=no
@@ -691,7 +691,7 @@ func (m model) rightPanelHeight() int {
 
 func loadLogs(appName string) tea.Cmd {
 	return func() tea.Msg {
-		out, _ := exec.Command("journalctl", "-u", "deploy-"+appName+".service",
+		out, _ := exec.Command("journalctl", "-u", systemd.ResolveUnit(appName),
 			"--no-pager", "-n", "200", "--output=short").CombinedOutput()
 		return logsLoadedMsg(out)
 	}
@@ -702,7 +702,7 @@ func loadStatus(appName string) tea.Cmd {
 		return nil
 	}
 	return func() tea.Msg {
-		out, _ := exec.Command("systemctl", "status", "deploy-"+appName+".service",
+		out, _ := exec.Command("systemctl", "status", systemd.ResolveUnit(appName),
 			"--no-pager", "-l").CombinedOutput()
 		return statusLoadedMsg(out)
 	}
@@ -714,7 +714,7 @@ func (m model) View() string {
 	var out strings.Builder
 
 	// ── Title bar ─────────────────────────────────────────────────────────────
-	title := titleStyle.Render("⚡ deploy")
+	title := titleStyle.Render("⚡ velo-deploy")
 	ver := versionStyle.Render(" — Bare Metal PaaS")
 	notif := ""
 	if m.notification != "" {

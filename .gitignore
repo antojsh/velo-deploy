@@ -1,8 +1,8 @@
-# Binaries
-velo-deploy
-velo-deploy.bak
-deploy
-deploy-cli
+# Binaries (root-only; do not ignore cmd/velo-deploy or internal/deploy)
+/velo-deploy
+/velo-deploy.bak
+/velo-deploy.exe
+*.exe
 /deploy
 /deploy-cli
 

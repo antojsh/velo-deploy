@@ -34,7 +34,7 @@ Override del path con la variable de entorno `VELO_CONFIG`.
       "port": 3000,
       "domain": "",
       "alias": "my-api.local",
-      "node_path": "/opt/nvm/versions/node/v24.0.0/bin/node",
+      "node_path": "/opt/deploy/node/24/bin/node",
       "entry_point": "index.js"
     },
     "my-site": {
@@ -57,6 +57,7 @@ Override del path con la variable de entorno `VELO_CONFIG`.
 | `logs_dir` | string | `/var/log/velo-deploy` | Dónde se escriben los logs de deploy. |
 | `daemon_port` | string | `9999` | Puerto al que se bindea el daemon de webhooks. |
 | `nvm_dir` | string | `/opt/nvm` | Ubicación del install de nvm. |
+| `webhook_secret` | string | file `/etc/velo-deploy/webhook.secret` | Secreto HMAC de webhooks de GitHub. |
 | `apps` | object | `{}` | Mapa de nombre de app a config de app. |
 
 ## Campos de app

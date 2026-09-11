@@ -17,7 +17,7 @@ func TestDetectVersionFromPackageJSON_Valid(t *testing.T) {
 
 	version, err := DetectVersionFromPackageJSON(tmpDir)
 	assert.NoError(t, err)
-	assert.Equal(t, "18", version)
+	assert.Equal(t, "24", version)
 }
 
 func TestDetectVersionFromPackageJSON_CaretVersion(t *testing.T) {

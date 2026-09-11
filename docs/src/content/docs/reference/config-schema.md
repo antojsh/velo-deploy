@@ -14,6 +14,7 @@ type Config = {
   logs_dir?: string;         // default: /var/log/velo-deploy
   daemon_port?: string;      // default: "9999"
   nvm_dir?: string;          // default: /opt/nvm
+  webhook_secret?: string;   // default: file /etc/velo-deploy/webhook.secret
   apps: Record<string, AppConfig>;
 };
 ```
@@ -51,6 +52,7 @@ type AppConfig = {
 | `logs_dir` | `/var/log/velo-deploy` |
 | `daemon_port` | `9999` |
 | `nvm_dir` | `/opt/nvm` |
+| `webhook_secret` | contents of `/etc/velo-deploy/webhook.secret` |
 | `apps.<name>.alias` | `<name>.local` |
 | `apps.<name>.path` | `/` with domain, `/<name>` without domain |
 | `apps.<name>.branch` | repo default branch |
@@ -89,7 +91,7 @@ type AppConfig = {
       "port": 3000,
       "domain": "api.acme.com",
       "alias": "api.local",
-      "node_path": "/opt/nvm/versions/node/v24.18.0/bin/node",
+      "node_path": "/opt/deploy/node/24/bin/node",
       "entry_point": "dist/main.js"
     },
     "marketing": {

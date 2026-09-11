@@ -208,6 +208,9 @@ jobs:
     needs: [release-please, binaries, docs]
     if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -240,6 +243,15 @@ jobs:
           find . -maxdepth 1 -type f \( -name '*.tar.gz' -o -name '*.zip' \) -print0 \
             | xargs -0 sha256sum > SHA256SUMS
           cat SHA256SUMS
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.8.2
+
+      - name: Sign SHA256SUMS
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          cosign sign-blob --yes --bundle SHA256SUMS.bundle SHA256SUMS
 
       - name: Verify required release assets
         working-directory: dist

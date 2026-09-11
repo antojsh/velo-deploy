@@ -39,6 +39,7 @@ velo-deploy deploy <repo-url> [flags]
 | `--output-dir` | string | auto | Build output dir (static only). |
 | `--build-command` | string | `npm run build` | Build command. Alias: `--build-cmd`. |
 | `--start-command` | string | `npm run start` | systemd start command. Alias: `--start-cmd`. |
+| `--force` | bool | `false` | Re-clone even if HEAD did not change. |
 
 ### `add`
 
@@ -109,6 +110,7 @@ velo-deploy daemon [flags]
 | --- | --- | --- | --- |
 | `--port` | int | `9999` | Port to listen on. |
 | `--host` | string | `0.0.0.0` | Address to bind to. |
+| `--secret` | string | file / env | Override webhook HMAC secret. |
 
 ## Environment variables
 
@@ -117,6 +119,7 @@ velo-deploy daemon [flags]
 | `VELO_CONFIG` | `/etc/velo-deploy/config.json` | Override config path. |
 | `VELO_LOGS_DIR` | `/var/log/velo-deploy` | Override logs dir. |
 | `VELO_APPS_DIR` | `/opt/deploy/apps` | Override apps dir. |
+| `VELO_WEBHOOK_SECRET` | file `/etc/velo-deploy/webhook.secret` | HMAC secret for GitHub webhooks. |
 | `NO_COLOR` | _unset_ | Disable ANSI colors. |
 
 ## Exit codes
