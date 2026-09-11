@@ -2,6 +2,7 @@ package caddy
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -235,8 +236,35 @@ func TestRemoveConfig_NotExists(t *testing.T) {
 }
 
 func TestReload(t *testing.T) {
+	caddyfile = filepath.Join(t.TempDir(), "missing-caddyfile")
+	lookPath = func(file string) (string, error) { return "caddy", nil }
+	execCommand = func(name string, args ...string) *exec.Cmd {
+		return exec.Command("go", "env", "GOVERSION")
+	}
+	defer func() {
+		execCommand = exec.Command
+		lookPath = exec.LookPath
+		caddyfile = "/etc/caddy/Caddyfile"
+	}()
+
 	err := Reload()
 	assert.NoError(t, err)
+}
+
+func TestReload_Failure(t *testing.T) {
+	caddyfile = filepath.Join(t.TempDir(), "missing-caddyfile")
+	lookPath = func(file string) (string, error) { return "caddy", nil }
+	execCommand = func(name string, args ...string) *exec.Cmd {
+		return exec.Command("go", "this-command-does-not-exist")
+	}
+	defer func() {
+		execCommand = exec.Command
+		lookPath = exec.LookPath
+		caddyfile = "/etc/caddy/Caddyfile"
+	}()
+
+	err := Reload()
+	assert.Error(t, err)
 }
 
 func TestRoute_Struct(t *testing.T) {

@@ -50,6 +50,7 @@ velo-deploy_0.2.0_windows_amd64.zip
 velo-deploy_0.2.0_windows_arm64.zip
 velo-deploy-install.sh
 SHA256SUMS
+SHA256SUMS.bundle
 ```
 
 If the docs were also bumped:

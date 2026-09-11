@@ -60,7 +60,7 @@ The web server and TLS terminator. Velo writes a per-app vhost to `/etc/caddy/co
 
 ### nvm
 
-Node.js version manager installed at `/opt/nvm`. Velo installs the version requested by `engines.node` and pins the resulting `node` binary in the app's config.
+Legacy fallback under `/opt/nvm`. New installs use official Node tarballs in `/opt/deploy/node/<major>`. Velo reads `engines.node`, picks the highest supported LTS that satisfies the range, and pins that binary on the app config.
 
 ## Data flow
 
@@ -89,4 +89,4 @@ The trade-off is that you cannot move a Velo app to another host by copying an i
 | Styling | [Lipgloss](https://github.com/charmbracelet/lipgloss) | TUI styling. |
 | Process mgmt | systemd | App lifecycle, isolation. |
 | Web server | [Caddy](https://caddyserver.com/) | Reverse proxy, automatic HTTPS. |
-| Node.js | [nvm](https://github.com/nvm-sh/nvm) | Version management. |
+| Node.js | Official tarballs in `/opt/deploy/node` | Per-app LTS matching `engines.node`. |

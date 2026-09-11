@@ -69,13 +69,7 @@ Solo los pushes a `main` o `master` disparan un deploy. Otras branches se ignora
 
 ## 4. Probalo
 
-Desde tu laptop:
-
-```bash
-curl -X POST http://<ip-servidor>:9999/webhook
-```
-
-Deberías ver una respuesta `200` y, en `journalctl -u velo-deploy-watcher -f`, una línea de log sobre el request.
+Desde tu laptop, mandá un ping firmado (mirá [Seguridad](#seguridad)). Un `curl` sin HMAC ahora responde `401`.
 
 Hacé push de un cambio chico a `main` y mirá cómo aterriza:
 
@@ -87,26 +81,30 @@ velo-deploy logs my-api -f
 
 ## Seguridad
 
-<Aside type="caution" title="El endpoint del webhook no está autenticado">
-	Por diseño, el daemon acepta cualquier `POST` a `/webhook` que diga venir de un repo conocido. Para producción, poné el daemon detrás de un reverse proxy que:
-	- Restrinja las IPs de origen a los rangos publicados por GitHub: [GitHub webhook IPs](https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries#about-validating-webhook-deliveries).
-	- Verifique el header HMAC `X-Hub-Signature-256` contra tu webhook secret.
-	- Exponga el daemon sobre HTTPS, no HTTP plano.
-</Aside>
+El watcher **exige** un header `X-Hub-Signature-256` válido. El instalador escribe un secreto HMAC aleatorio en `/etc/velo-deploy/webhook.secret`. En GitHub, usá el mismo valor como secret del webhook.
 
-### Validar el HMAC
+Requests sin firma o con firma inválida reciben `401`. No hay camino de deploy sin autenticar.
 
-Una versión futura de `velo-deploy-watcher` validará el header `X-Hub-Signature-256` out of the box. Hasta entonces, el patrón recomendado es poner Caddy adelante:
+Podés overridear el secreto con `VELO_WEBHOOK_SECRET`, `--secret` o `webhook_secret` en `config.json`.
 
-```nginx
+### Probar un ping en local
+
+```bash
+SECRET=$(sudo cat /etc/velo-deploy/webhook.secret)
+BODY='{"zen":"ok","hook_id":1}'
+SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$SECRET" | awk '{print $2}')"
+curl -X POST http://127.0.0.1:9999/webhook \
+  -H "Content-Type: application/json" \
+  -H "X-GitHub-Event: ping" \
+  -H "X-Hub-Signature-256: $SIG" \
+  -d "$BODY"
+```
+
+Poné Caddy adelante si querés HTTPS y allow-list de IPs de GitHub. La validación HMAC sigue ocurriendo en el daemon.
+
+```caddy
 webhook.example.com {
-    @github header X-Hub-Signature-256 *
-    handle_response @github {
-        request_body {
-            replace "REPLACE_ME" "computed_hmac"
-        }
-    }
-    reverse_proxy localhost:9999
+    reverse_proxy 127.0.0.1:9999
 }
 ```
 

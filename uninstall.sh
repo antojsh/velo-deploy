@@ -23,7 +23,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 # 1. Stop and remove all deploy-managed services
-for svc in /etc/systemd/system/deploy-*.service /etc/systemd/system/velo-deploy-watcher.service; do
+for svc in /etc/systemd/system/velo-*.service /etc/systemd/system/deploy-*.service /etc/systemd/system/velo-deploy-watcher.service; do
   if [ -f "$svc" ]; then
     name=$(basename "$svc" .service)
     log_info "Stopping and removing $name..."
@@ -43,17 +43,19 @@ if [ -f /etc/hosts ]; then
   sed -i '/\.local$/d' /etc/hosts
 fi
 
-# 4. Remove deploy users
+# 4. Remove app users
 while IFS=: read -r u _; do
   log_info "Removing user $u..."
   userdel -r "$u" 2>/dev/null || true
-done < <(cut -d: -f1 /etc/passwd | grep '^deploy-')
+done < <(cut -d: -f1 /etc/passwd | grep -E '^(velo-|deploy-)')
 [ -n "${u:-}" ] || true  # keep shellcheck quiet about the read variable
 
 # 5. Remove directories
 rm -rf /opt/deploy
 rm -rf /etc/deploy
+rm -rf /etc/velo-deploy
 rm -rf /var/log/deploy
+rm -rf /var/log/velo-deploy
 
 # 6. Remove binary
 rm -f /usr/local/bin/velo-deploy

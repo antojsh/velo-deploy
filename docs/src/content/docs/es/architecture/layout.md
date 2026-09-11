@@ -10,9 +10,11 @@ Una instalación fresca de Velo Deploy produce el siguiente layout en el servido
 ```
 /etc/velo-deploy/
 ├── config.json          # Metadata y configuración de las apps
-├── apps/                # Código fuente de las apps desplegadas
-│   └── <app-name>/
-└── logs/                # Logs de deploy por app (rolling)
+├── webhook.secret       # Secreto HMAC de webhooks de GitHub
+├── apps/                # Secretos EnvironmentFile por app
+│   └── <app-name>.env
+└── caddy/               # Snippets de Caddy que sobreviven un redeploy
+    └── <app-name>.snippet
 
 /var/log/velo-deploy/    # Logs a nivel sistema (velo-deploy-watcher, velo-deploy)
 
@@ -26,8 +28,10 @@ Una instalación fresca de Velo Deploy produce el siguiente layout en el servido
     ├── <app>.conf         # Configs de Caddy por app (basadas en dominio)
     └── _shared.conf       # Config compartida catch-all (basada en path)
 
-/opt/nvm/                  # Install de nvm (las versiones de Node viven acá)
-/opt/deploy/               # Las apps viven acá por default
+/opt/nvm/                  # fallback de nvm para installs viejos
+/opt/deploy/
+├── apps/                  # Código de las apps (default)
+└── node/<major>/          # Tarballs oficiales de Node
 ```
 
 ## Paths de runtime
@@ -83,7 +87,7 @@ Los logs bajo `/var/log/velo-deploy/` se pueden borrar sin problema. Las unidade
 Una instalación típica usa:
 
 - 80 MB para el binario de Go y Caddy.
-- 200 MB para nvm + Node 24.
+- 200 MB para Node 24 en `/opt/deploy/node`.
 - 100 MB por app desplegada (mayormente `node_modules`).
 
 Planeá 5 GB de disco libre en un servidor chico.

@@ -9,12 +9,12 @@ Velo Deploy autodetecta sitios estáticos y los sirve directo desde el `file_ser
 
 ## Cómo Velo detecta un sitio estático
 
-Un repositorio se trata como sitio estático cuando se cumple **cualquiera** de las siguientes:
+Un repositorio se trata como app **Node.js** cuando `package.json` tiene un script `start`. Se trata como sitio **estático** cuando no hay `start` y se cumple **cualquiera** de:
 
 - La raíz del repo contiene un archivo `index.html`.
 - El `package.json` tiene un script `build`.
 
-Proyectos solo Node (sin `index.html`, sin script `build`) se detectan como apps Node.
+Si pasás `--type`, ese valor gana. Apps tipo Next.js (con `build` y `start`) se despliegan como Node.js.
 
 ## Cómo corre el build
 
@@ -79,7 +79,7 @@ sudo caddy reload --config /etc/caddy/Caddyfile
 ```
 
 <Aside type="caution" title="Las ediciones manuales no son idempotentes">
-	Re-correr `velo-deploy deploy` o `velo-deploy add` reescribe el vhost desde cero. Si necesitás customizaciones persistentes, fork el [install script](https://github.com/antojsh/velo-deploy/blob/master/install.sh) y agregá un hook post-deploy que re-aplique tus parches.
+	Re-correr `velo-deploy deploy` o `velo-deploy add` reescribe el vhost generado. Poné customizaciones persistentes en `/etc/velo-deploy/caddy/<app>.snippet` — Velo importa ese archivo en cada generate.
 </Aside>
 
 ## Routing de SPA

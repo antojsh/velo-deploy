@@ -39,6 +39,7 @@ velo-deploy deploy <repo-url> [flags]
 | `--output-dir` | string | auto | Dir de output del build (solo estáticos). |
 | `--build-command` | string | `npm run build` | Comando de build. Alias: `--build-cmd`. |
 | `--start-command` | string | `npm run start` | Comando de start para systemd. Alias: `--start-cmd`. |
+| `--force` | bool | `false` | Re-clona aunque el HEAD no haya cambiado. |
 
 ### `add`
 
@@ -109,6 +110,7 @@ velo-deploy daemon [flags]
 | --- | --- | --- | --- |
 | `--port` | int | `9999` | Puerto en el que escucha. |
 | `--host` | string | `0.0.0.0` | Address al que se bindea. |
+| `--secret` | string | file / env | Override del secreto HMAC del webhook. |
 
 ## Variables de entorno
 
@@ -117,6 +119,7 @@ velo-deploy daemon [flags]
 | `VELO_CONFIG` | `/etc/velo-deploy/config.json` | Override del path del config. |
 | `VELO_LOGS_DIR` | `/var/log/velo-deploy` | Override del dir de logs. |
 | `VELO_APPS_DIR` | `/opt/deploy/apps` | Override del dir de apps. |
+| `VELO_WEBHOOK_SECRET` | file `/etc/velo-deploy/webhook.secret` | Secreto HMAC de webhooks de GitHub. |
 | `NO_COLOR` | _unset_ | Deshabilita colores ANSI. |
 
 ## Códigos de salida

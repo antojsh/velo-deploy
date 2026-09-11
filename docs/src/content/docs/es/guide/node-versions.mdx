@@ -5,7 +5,7 @@ description: Cómo Velo elige, instala y cambia versiones de Node.js.
 
 import { Steps } from '@astrojs/starlight/components';
 
-Velo Deploy usa [nvm](https://github.com/nvm-sh/nvm) para gestionar Node.js. Las versiones se instalan en `/opt/nvm/versions/node/vX.Y.Z`.
+Velo Deploy instala tarballs oficiales de Node.js en `/opt/deploy/node/<major>/`. Ese layout lo puede leer cualquier usuario de app. [nvm](https://github.com/nvm-sh/nvm) en `/opt/nvm` queda como fallback para installs viejos.
 
 ## Versiones soportadas
 
@@ -20,8 +20,8 @@ Velo Deploy usa [nvm](https://github.com/nvm-sh/nvm) para gestionar Node.js. Las
 <Steps>
 
 1. Velo lee el campo `engines.node` del `package.json`.
-2. Se instala la mayor versión soportada que satisfaga el rango (o se reusa si ya está presente).
-3. Si no hay campo `engines`, Velo cae a **Node 24**.
+2. Elige el **mayor LTS soportado** que satisfaga el rango (16, 18, 20, 22, 24).
+3. Si no hay `engines`, o el rango no matchea nada, cae a **Node 24**.
 
 </Steps>
 
@@ -66,7 +66,7 @@ Después actualizá el `node_path` de la app en `/etc/velo-deploy/config.json`:
 {
   "apps": {
     "my-api": {
-      "node_path": "/opt/nvm/versions/node/v20.10.0/bin/node"
+      "node_path": "/opt/deploy/node/20/bin/node"
     }
   }
 }
@@ -85,7 +85,7 @@ Cuando bumpeás la mayor versión en `engines.node`, Velo instala la nueva versi
 Para remover una versión sin usar:
 
 ```bash
-sudo /opt/nvm/nvm-exec nvm uninstall 18.20.0
+sudo rm -rf /opt/deploy/node/18
 ```
 
 ## npm y corepack

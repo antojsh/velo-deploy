@@ -10,20 +10,27 @@ import (
 )
 
 var confDir = "/etc/caddy/conf.d"
+var snippetDir = "/etc/velo-deploy/caddy"
+var caddyfile = "/etc/caddy/Caddyfile"
+var execCommand = exec.Command
+var lookPath = exec.LookPath
 
-// SetConfDir sets the Caddy config directory (for testing)
 func SetConfDir(path string) {
 	confDir = path
 }
 
+func SetSnippetDir(path string) {
+	snippetDir = path
+}
+
 // Route represents a single app routing rule.
 type Route struct {
-	AppName   string
-	Upstream  string // e.g. "myapp.local:3000"
-	Domain    string // empty = path-based
-	Path      string // e.g. "/myapp"
-	Type      string // "node" | "static"
-	RootDir   string // e.g. "/opt/deploy/apps/myapp/dist" (for static)
+	AppName  string
+	Upstream string // e.g. "myapp.local:3000"
+	Domain   string // empty = path-based
+	Path     string // e.g. "/myapp"
+	Type     string // "node" | "static"
+	RootDir  string // e.g. "/opt/deploy/apps/myapp/dist" (for static)
 }
 
 // GenerateConfig creates a Caddy config file for an app.
@@ -37,10 +44,7 @@ func GenerateConfig(appName, domain, upstream string) error {
 	os.MkdirAll(confDir, 0755)
 
 	confPath := filepath.Join(confDir, appName+".conf")
-	conf := fmt.Sprintf(`%s {
-    reverse_proxy %s
-}
-`, domain, upstream)
+	conf := fmt.Sprintf("%s {\n    reverse_proxy %s\n%s}\n", domain, upstream, snippetImport(appName))
 	return os.WriteFile(confPath, []byte(conf), 0644)
 }
 
@@ -53,11 +57,7 @@ func GenerateStaticConfig(appName, domain, rootDir string) error {
 	os.MkdirAll(confDir, 0755)
 
 	confPath := filepath.Join(confDir, appName+".conf")
-	conf := fmt.Sprintf(`%s {
-    root * %s
-    file_server
-}
-`, domain, rootDir)
+	conf := fmt.Sprintf("%s {\n    root * %s\n    file_server\n%s}\n", domain, rootDir, snippetImport(appName))
 	return os.WriteFile(confPath, []byte(conf), 0644)
 }
 
@@ -127,7 +127,24 @@ func writeRoute(sb *strings.Builder, r Route) {
 	} else {
 		sb.WriteString(fmt.Sprintf("        reverse_proxy %s\n", r.Upstream))
 	}
+	sb.WriteString(snippetImportIndented(r.AppName, "        "))
 	sb.WriteString("    }\n\n")
+}
+
+func snippetImport(appName string) string {
+	path := filepath.ToSlash(filepath.Join(snippetDir, appName+".snippet"))
+	if _, err := os.Stat(path); err != nil {
+		return ""
+	}
+	return fmt.Sprintf("    import %s\n", path)
+}
+
+func snippetImportIndented(appName, indent string) string {
+	path := filepath.ToSlash(filepath.Join(snippetDir, appName+".snippet"))
+	if _, err := os.Stat(path); err != nil {
+		return ""
+	}
+	return fmt.Sprintf("%simport %s\n", indent, path)
 }
 
 func routePath(r Route) string {
@@ -157,14 +174,18 @@ func RemoveConfig(appName string) error {
 	return nil
 }
 
-// Reload tells Caddy to reload its configuration.
-// Returns an error but callers should treat it as a warning — the app is
-// already deployed; Caddy may simply not be running yet.
 func Reload() error {
-	cmd := exec.Command("caddy", "reload")
+	if _, err := lookPath("caddy"); err != nil {
+		return nil
+	}
+	args := []string{"reload"}
+	if _, err := os.Stat(caddyfile); err == nil {
+		args = []string{"reload", "--config", caddyfile}
+	}
+	cmd := execCommand("caddy", args...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Warning: caddy reload failed (is Caddy running?): %s\n", strings.TrimSpace(string(out)))
+		return fmt.Errorf("caddy reload failed: %s: %w", strings.TrimSpace(string(out)), err)
 	}
 	return nil
 }

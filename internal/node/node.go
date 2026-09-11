@@ -7,21 +7,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"unicode"
 )
 
 var (
 	execCommand = exec.Command
 )
 
-// DefaultNodeVersion is the Node.js major version used when package.json does
-// not define engines.node or defines a malformed value.
-const DefaultNodeVersion = "24"
-
-// DetectVersionFromPackageJSON reads package.json and extracts the "engines.node"
-// field. Returns the major version as a string (e.g., "24") or the configured
-// default when the field is missing/empty/malformed. Returns an error
-// only when the file is missing or the JSON is invalid.
 func DetectVersionFromPackageJSON(workDir string) (string, error) {
 	pkgPath := filepath.Join(workDir, "package.json")
 	data, err := os.ReadFile(pkgPath)
@@ -38,26 +29,7 @@ func DetectVersionFromPackageJSON(workDir string) (string, error) {
 		return "", fmt.Errorf("invalid package.json: %w", err)
 	}
 
-	raw := strings.TrimSpace(pkg.Engines.Node)
-	if raw == "" {
-		return DefaultNodeVersion, nil
-	}
-
-	// Strip common range operators: >=, <=, >, <, ^, ~, =
-	for _, op := range []string{">=", "<=", ">", "<", "^", "~", "="} {
-		raw = strings.TrimPrefix(raw, op)
-	}
-	raw = strings.TrimSpace(raw)
-
-	// Extract the leading numeric part (the major version).
-	end := 0
-	for end < len(raw) && unicode.IsDigit(rune(raw[end])) {
-		end++
-	}
-	if end == 0 {
-		return DefaultNodeVersion, nil
-	}
-	return raw[:end], nil
+	return ResolveEnginesRange(pkg.Engines.Node), nil
 }
 
 // nodeInstallBase is the base directory for all node installations.
@@ -155,11 +127,14 @@ func GetNodePath(nvmDir, version string) (string, error) {
 func InstallDeps(workDir, nodePath string) error {
 	nodeDir := filepath.Dir(nodePath)
 	npmPath := filepath.Join(nodeDir, "npm")
-	cmd := exec.Command(npmPath, "install")
+	args := []string{"install"}
+	if _, err := os.Stat(filepath.Join(workDir, "package-lock.json")); err == nil {
+		args = []string{"ci"}
+	}
+	cmd := execCommand(npmPath, args...)
 	cmd.Dir = workDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	// Prepend node's bin dir to PATH so npm scripts can find 'node'
 	cmd.Env = append(os.Environ(), "PATH="+nodeDir+":"+os.Getenv("PATH"))
 	return cmd.Run()
 }

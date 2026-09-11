@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC1091  # sourced files (/etc/os-release, nvm.sh) are not in shellcheck's source path in CI
+# shellcheck disable=SC1091  # sourced files (/etc/os-release) are not in shellcheck's source path in CI
 set -e
 
 # ==========================================
@@ -48,7 +48,7 @@ log_info "Detected: $PRETTY_NAME"
 # --- 2. Install dependencies ---
 log_info "Installing dependencies..."
 apt-get update -qq
-apt-get install -y -qq curl git build-essential ufw ca-certificates >/dev/null 2>&1
+apt-get install -y -qq curl git build-essential ca-certificates openssl python3 >/dev/null 2>&1
 
 # --- 3. Install Caddy ---
 if ! command -v caddy &>/dev/null; then
@@ -65,28 +65,28 @@ else
   log_info "Caddy already installed."
 fi
 
-# --- 4. Install nvm to /opt/nvm (accessible by all system users) ---
-export NVM_DIR="/opt/nvm"
-if [ ! -s "$NVM_DIR/nvm.sh" ]; then
-  log_info "Installing nvm to /opt/nvm..."
-  mkdir -p "$NVM_DIR"
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | NVM_DIR="$NVM_DIR" bash >/dev/null 2>&1
-  # shellcheck source=/opt/nvm/nvm.sh
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-  chmod -R a+rX "$NVM_DIR"
-  log_info "nvm installed at /opt/nvm."
-else
-  log_info "nvm already installed at /opt/nvm."
-  # shellcheck source=/opt/nvm/nvm.sh
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-fi
+# --- 4. Node.js runtime dir (official tarballs under /opt/deploy/node/<major>) ---
+# nvm at /opt/nvm is an optional legacy fallback; Velo does not install it.
 
 # --- 5. Prepare directories ---
 log_info "Creating directory structure..."
-mkdir -p /etc/deploy
+mkdir -p /etc/velo-deploy/apps
+mkdir -p /etc/velo-deploy/caddy
 mkdir -p /opt/deploy/apps
-mkdir -p /var/log/deploy
+mkdir -p /opt/deploy/node
+mkdir -p /var/log/velo-deploy
 mkdir -p /etc/caddy/conf.d
+
+if [ -f /etc/deploy/config.json ] && [ ! -f /etc/velo-deploy/config.json ]; then
+  log_info "Migrating /etc/deploy/config.json to /etc/velo-deploy/config.json"
+  cp /etc/deploy/config.json /etc/velo-deploy/config.json
+fi
+
+if [ ! -s /etc/velo-deploy/webhook.secret ]; then
+  openssl rand -hex 32 > /etc/velo-deploy/webhook.secret
+  chmod 600 /etc/velo-deploy/webhook.secret
+  log_info "Wrote GitHub webhook secret to /etc/velo-deploy/webhook.secret"
+fi
 
 # --- 6. Ensure caddy.conf.d is imported ---
 CADDYFILE="/etc/caddy/Caddyfile"
@@ -174,11 +174,33 @@ else
     exit 1
   fi
 
+  if curl -fsSLo "$TMP_DIR/SHA256SUMS.bundle" "$BASE_URL/SHA256SUMS.bundle"; then
+    if command -v cosign >/dev/null 2>&1; then
+      log_info "Verifying cosign signature..."
+      if ! cosign verify-blob \
+        --bundle "$TMP_DIR/SHA256SUMS.bundle" \
+        --certificate-identity-regexp 'https://github.com/.+/velo-deploy/.github/workflows/release-please.yml@.*' \
+        --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+        "$TMP_DIR/SHA256SUMS"; then
+        log_error "cosign verification failed. Aborting install."
+        exit 1
+      fi
+    else
+      log_warn "cosign is not installed; skipped signature check (SHA256 still verified)."
+    fi
+  else
+    log_warn "No SHA256SUMS.bundle on this release; skipped cosign verification."
+  fi
+
   log_info "Extracting binary..."
   tar -xzf "$TMP_DIR/$ASSET" -C "$TMP_DIR"
   if [ ! -f "$TMP_DIR/velo-deploy" ]; then
     log_error "Archive did not contain a 'velo-deploy' binary."
     exit 1
+  fi
+  if [ -f /usr/local/bin/velo-deploy ]; then
+    cp /usr/local/bin/velo-deploy /usr/local/bin/velo-deploy.bak
+    log_info "Backed up existing binary to /usr/local/bin/velo-deploy.bak"
   fi
   install -m 0755 "$TMP_DIR/velo-deploy" /usr/local/bin/velo-deploy
 fi
@@ -189,13 +211,19 @@ log_info "velo-deploy ${TAG} installed at /usr/local/bin/velo-deploy"
 cat > /etc/systemd/system/velo-deploy-watcher.service << 'EOF'
 [Unit]
 Description=Velo Deploy Git-Watcher Daemon
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 ExecStart=/usr/local/bin/velo-deploy daemon --port 9999
 Restart=always
 RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/etc/velo-deploy /opt/deploy /var/log/velo-deploy /etc/caddy /etc/hosts /etc/systemd/system /tmp
 
 [Install]
 WantedBy=multi-user.target
@@ -213,6 +241,9 @@ log_info "  Usage:"
 log_info "    velo-deploy              # Launch TUI"
 log_info "    velo-deploy deploy <repo>  # Deploy a repo"
 log_info "    velo-deploy list          # List all apps"
+log_info ""
+log_info "  Webhook secret: /etc/velo-deploy/webhook.secret"
+log_info "  Use that value as the GitHub webhook secret."
 log_info ""
 log_info "  Start the auto-deploy daemon:"
 log_info "    systemctl enable --now velo-deploy-watcher"

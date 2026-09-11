@@ -39,11 +39,7 @@ sudo systemctl status velo-deploy-watcher
 sudo journalctl -u velo-deploy-watcher -f
 ```
 
-Testeá el endpoint localmente:
-
-```bash
-curl -X POST http://localhost:9999/webhook
-```
+Testeá el endpoint en local con un ping firmado (mirá [Webhooks](/velo-deploy/es/guide/webhooks/#seguridad)). Un POST sin HMAC responde `401`.
 
 Si obtenés connection refused, el daemon no está corriendo. Si obtenés un `404`, la ruta está mal (debería ser `/webhook`, no `/`).
 

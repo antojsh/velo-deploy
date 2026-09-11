@@ -116,7 +116,7 @@ sudo ./install.sh
 │   ├── config/        # /etc/velo-deploy/config.json
 │   ├── deploy/        # Git pull, build, systemd wiring
 │   ├── hosts/         # /etc/hosts management
-│   ├── node/          # nvm + Node version management
+│   ├── node/          # Node tarball installs + engines.node range resolver
 │   ├── systemd/       # Unit file generation
 │   └── tui/           # Bubble Tea dashboard
 ├── docs/              # Astro + Starlight documentation site
@@ -134,7 +134,7 @@ sudo ./install.sh
 | Styling | [Lipgloss](https://github.com/charmbracelet/lipgloss) | TUI styling |
 | Process mgmt | systemd | App lifecycle, isolation, hardening |
 | Web server | [Caddy](https://caddyserver.com/) | Reverse proxy, automatic HTTPS via ACME |
-| Node.js | [nvm](https://github.com/nvm-sh/nvm) | Per-app version management |
+| Node.js | Official tarballs in `/opt/deploy/node` | Per-app LTS matching `engines.node` |
 | Docs | [Astro](https://astro.build/) + [Starlight](https://starlight.astro.build/) | Static documentation site |
 
 ## Contributing

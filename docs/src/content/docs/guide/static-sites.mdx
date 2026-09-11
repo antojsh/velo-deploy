@@ -9,12 +9,12 @@ Velo Deploy auto-detects static sites and serves them straight from Caddy's `fil
 
 ## How Velo detects a static site
 
-A repository is treated as a static site when **either** of the following is true:
+A repository is treated as a **Node.js** app when `package.json` has a `start` script. It is treated as a **static** site when there is no `start` script and any of the following is true:
 
 - The repo root contains an `index.html` file.
 - The `package.json` has a `build` script.
 
-Node.js-only projects (no `index.html`, no `build` script) are detected as Node apps.
+`--type` always wins. Next.js-style apps with both `build` and `start` deploy as Node.js.
 
 ## How the build runs
 
@@ -79,7 +79,7 @@ sudo caddy reload --config /etc/caddy/Caddyfile
 ```
 
 <Aside type="caution" title="Manual edits are not idempotent">
-	Re-running `velo-deploy deploy` or `velo-deploy add` rewrites the vhost from scratch. If you need persistent customizations, fork the [install script](https://github.com/antojsh/velo-deploy/blob/master/install.sh) and add a post-deploy hook that re-applies your patches.
+	Re-running `velo-deploy deploy` or `velo-deploy add` rewrites the generated vhost. Put durable customizations in `/etc/velo-deploy/caddy/<app>.snippet` — Velo imports that file on every generate.
 </Aside>
 
 ## SPA routing

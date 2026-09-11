@@ -138,10 +138,10 @@ func TestSave(t *testing.T) {
 		NVMDir:       "/test/nvm",
 		Apps: map[string]*AppMeta{
 			"myapp": {
-				Name:       "myapp",
-				Type:       AppTypeStatic,
-				OutputDir:  "dist",
-				Alias:      "myapp.local",
+				Name:      "myapp",
+				Type:      AppTypeStatic,
+				OutputDir: "dist",
+				Alias:     "myapp.local",
 			},
 		},
 	}
@@ -307,10 +307,10 @@ func TestAppMeta_StaticType(t *testing.T) {
 }
 
 func TestConstants(t *testing.T) {
-	assert.Equal(t, "/etc/deploy", ConfigDir)
+	assert.Equal(t, "/etc/velo-deploy", ConfigDir)
 	assert.Equal(t, "config.json", ConfigFile)
 	assert.Equal(t, "/opt/deploy/apps", AppsDir)
-	assert.Equal(t, "/var/log/deploy", LogsDir)
+	assert.Equal(t, "/var/log/velo-deploy", LogsDir)
 	assert.Equal(t, "/etc/caddy/conf.d", CaddyConf)
 	assert.Equal(t, "node", AppTypeNode)
 	assert.Equal(t, "static", AppTypeStatic)

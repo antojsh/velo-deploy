@@ -31,7 +31,8 @@ Each unit file includes the following directives:
 | `PrivateDevices=true` | The app cannot talk to raw devices. |
 | `ProtectKernelTunables=true` | `/proc` and `/sys` writes are blocked. |
 | `RestrictNamespaces=true` | The app cannot create new namespaces. |
-| `MemoryDenyWriteExecute=true` | W^X memory policy (where the kernel supports it). |
+
+`MemoryDenyWriteExecute` is **not** set. Node.js (V8 JIT) needs executable memory; enabling W^X would crash the process.
 
 A full example:
 
@@ -39,15 +40,20 @@ A full example:
 [Unit]
 Description=Velo Deploy app: my-api
 After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=velo-my-api
 Group=velo-my-api
 WorkingDirectory=/opt/deploy/apps/my-api
-ExecStart=/opt/nvm/versions/node/v20.10.0/bin/node index.js
+ExecStart=/opt/deploy/node/24/bin/node index.js
 Restart=on-failure
 RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+EnvironmentFile=-/etc/velo-deploy/apps/my-api.env
 
 NoNewPrivileges=true
 PrivateTmp=true
@@ -57,7 +63,6 @@ ReadWritePaths=/opt/deploy/apps/my-api /tmp
 PrivateDevices=true
 ProtectKernelTunables=true
 RestrictNamespaces=true
-MemoryDenyWriteExecute=true
 
 [Install]
 WantedBy=multi-user.target
@@ -87,31 +92,28 @@ Caddy is the only process listening on a public port. Node.js apps bind to `loca
 ## Secrets
 
 <Aside type="danger" title="Do not commit secrets to Git">
-	Velo Deploy does not manage secrets. Pass them as environment variables in the systemd unit, never as part of the repository.
+	Put runtime secrets in `/etc/velo-deploy/apps/<name>.env`. Velo wires that file into the systemd unit with `EnvironmentFile=-…`, so redeploys keep your secrets. Never store them in the repository.
 </Aside>
 
-To inject environment variables, edit the unit file and add an `Environment=` line, or use an `EnvironmentFile=` directive:
-
-```ini
-[Service]
-Environment="DATABASE_URL=postgres://..."
-EnvironmentFile=/etc/velo-deploy/my-api.env
-```
-
-Then reload and restart:
-
 ```bash
-sudo systemctl daemon-reload
+sudo install -m 0640 /dev/null /etc/velo-deploy/apps/my-api.env
+sudo tee /etc/velo-deploy/apps/my-api.env >/dev/null <<'EOF'
+DATABASE_URL=postgres://...
+EOF
 sudo systemctl restart velo-my-api
 ```
 
+Custom Caddy directives that must survive a redeploy belong in `/etc/velo-deploy/caddy/<name>.snippet`. Velo imports that file into the generated vhost.
+
 ## Webhook security
 
-See [Webhooks](/velo-deploy/guide/webhooks/#security) for the recommended HMAC validation and IP allow-listing pattern.
+`velo-deploy-watcher` requires `X-Hub-Signature-256` HMAC-SHA256. The installer writes a random secret to `/etc/velo-deploy/webhook.secret`. Set the same value as the GitHub webhook secret. Requests without a valid signature are rejected with `401`.
+
+You can also set `VELO_WEBHOOK_SECRET` or `webhook_secret` in `config.json`.
 
 ## Supply chain
 
-Velo's Go dependencies are pinned in `go.sum` and verified on every build. The release pipeline signs binaries with [cosign](https://github.com/sigstore/cosign) and the install script checks the signature before installing. See the [release-please configuration](https://github.com/antojsh/velo-deploy/blob/master/release-please-config.json) for the exact pipeline.
+Go dependencies are pinned in `go.sum`. The release pipeline signs `SHA256SUMS` with [cosign](https://github.com/sigstore/cosign) (keyless, GitHub OIDC) and attaches `SHA256SUMS.bundle`. The installer verifies SHA256 always, and verifies the cosign bundle when `cosign` is installed.
 
 ## Reporting a vulnerability
 

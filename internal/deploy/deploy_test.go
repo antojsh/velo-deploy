@@ -16,7 +16,7 @@ import (
 
 func TestDeriveAppName(t *testing.T) {
 	tests := []struct {
-		repoURL string
+		repoURL  string
 		expected string
 	}{
 		{"https://github.com/user/my-repo.git", "my-repo"},
@@ -323,26 +323,26 @@ func TestRebuildSharedCaddyConfig_Empty(t *testing.T) {
 
 func TestRebuildSharedCaddyConfig_WithNodeApp(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	caddy.SetConfDir(tmpDir)
 	defer caddy.SetConfDir("/etc/caddy/conf.d")
-	
+
 	appsDir := filepath.Join(tmpDir, "apps")
 	err := os.Mkdir(appsDir, 0755)
 	require.NoError(t, err)
-	
+
 	appDir := filepath.Join(appsDir, "myapp")
 	err = os.Mkdir(appDir, 0755)
 	require.NoError(t, err)
-	
+
 	cfg := &config.Config{
 		AppsDir: appsDir,
 		Apps: map[string]*config.AppMeta{
 			"myapp": {
-				Name:    "myapp",
-				Type:    config.AppTypeNode,
-				Port:    3000,
-				Alias:   "myapp.local",
+				Name:      "myapp",
+				Type:      config.AppTypeNode,
+				Port:      3000,
+				Alias:     "myapp.local",
 				OutputDir: "",
 			},
 		},
@@ -360,22 +360,22 @@ func TestRebuildSharedCaddyConfig_WithNodeApp(t *testing.T) {
 
 func TestRebuildSharedCaddyConfig_WithStaticApp(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	caddy.SetConfDir(tmpDir)
 	defer caddy.SetConfDir("/etc/caddy/conf.d")
-	
+
 	appsDir := filepath.Join(tmpDir, "apps")
 	err := os.Mkdir(appsDir, 0755)
 	require.NoError(t, err)
-	
+
 	appDir := filepath.Join(appsDir, "mysite")
 	err = os.Mkdir(appDir, 0755)
 	require.NoError(t, err)
-	
+
 	distDir := filepath.Join(appDir, "dist")
 	err = os.Mkdir(distDir, 0755)
 	require.NoError(t, err)
-	
+
 	cfg := &config.Config{
 		AppsDir: appsDir,
 		Apps: map[string]*config.AppMeta{
@@ -400,165 +400,165 @@ func TestRebuildSharedCaddyConfig_WithStaticApp(t *testing.T) {
 }
 
 func TestRegister_StaticWithDomainPersistsMetadataAndCaddyConfig(t *testing.T) {
-    tmpDir := t.TempDir()
-    appsDir := filepath.Join(tmpDir, "apps")
-    appDir := filepath.Join(appsDir, "site")
-    distDir := filepath.Join(appDir, "dist")
-    require.NoError(t, os.MkdirAll(distDir, 0755))
-    require.NoError(t, os.WriteFile(filepath.Join(distDir, "index.html"), []byte("<h1>ok</h1>"), 0644))
+	tmpDir := t.TempDir()
+	appsDir := filepath.Join(tmpDir, "apps")
+	appDir := filepath.Join(appsDir, "site")
+	distDir := filepath.Join(appDir, "dist")
+	require.NoError(t, os.MkdirAll(distDir, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(distDir, "index.html"), []byte("<h1>ok</h1>"), 0644))
 
-    confDir := filepath.Join(tmpDir, "caddy")
-    hostsPath := filepath.Join(tmpDir, "hosts")
-    require.NoError(t, os.WriteFile(hostsPath, []byte("127.0.0.1 localhost\n"), 0644))
+	confDir := filepath.Join(tmpDir, "caddy")
+	hostsPath := filepath.Join(tmpDir, "hosts")
+	require.NoError(t, os.WriteFile(hostsPath, []byte("127.0.0.1 localhost\n"), 0644))
 	hosts.SetHostsFile(hostsPath)
 	defer hosts.SetHostsFile("/etc/hosts")
 
-    caddy.SetConfDir(confDir)
-    defer caddy.SetConfDir("/etc/caddy/conf.d")
+	caddy.SetConfDir(confDir)
+	defer caddy.SetConfDir("/etc/caddy/conf.d")
 
-    originalConfigDir := config.ConfigDir
-    config.ConfigDir = filepath.Join(tmpDir, "config")
-    defer func() { config.ConfigDir = originalConfigDir }()
+	originalConfigDir := config.ConfigDir
+	config.ConfigDir = filepath.Join(tmpDir, "config")
+	defer func() { config.ConfigDir = originalConfigDir }()
 
-    cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{}}
+	cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{}}
 
-    err := Register(cfg, "site", appDir, "site.example.com", "site.local", config.AppTypeStatic)
+	err := Register(cfg, "site", appDir, "site.example.com", "site.local", config.AppTypeStatic)
 
-    assert.NoError(t, err)
-    require.Contains(t, cfg.Apps, "site")
-    assert.Equal(t, config.AppTypeStatic, cfg.Apps["site"].Type)
-    assert.Equal(t, "dist", cfg.Apps["site"].OutputDir)
-    assert.Equal(t, "site.example.com", cfg.Apps["site"].Domain)
-    assert.Equal(t, "/", cfg.Apps["site"].Path)
+	assert.NoError(t, err)
+	require.Contains(t, cfg.Apps, "site")
+	assert.Equal(t, config.AppTypeStatic, cfg.Apps["site"].Type)
+	assert.Equal(t, "dist", cfg.Apps["site"].OutputDir)
+	assert.Equal(t, "site.example.com", cfg.Apps["site"].Domain)
+	assert.Equal(t, "/", cfg.Apps["site"].Path)
 
-    caddyConfig, err := os.ReadFile(filepath.Join(confDir, "_shared.conf"))
-    require.NoError(t, err)
-    assert.Contains(t, string(caddyConfig), "site.example.com")
-    assert.Contains(t, string(caddyConfig), "handle {")
-    assert.Contains(t, string(caddyConfig), "root * "+distDir)
-    assert.Contains(t, string(caddyConfig), "file_server")
+	caddyConfig, err := os.ReadFile(filepath.Join(confDir, "_shared.conf"))
+	require.NoError(t, err)
+	assert.Contains(t, string(caddyConfig), "site.example.com")
+	assert.Contains(t, string(caddyConfig), "handle {")
+	assert.Contains(t, string(caddyConfig), "root * "+distDir)
+	assert.Contains(t, string(caddyConfig), "file_server")
 }
 
 func TestRegister_StaticWithoutDomainRebuildsSharedConfig(t *testing.T) {
-    tmpDir := t.TempDir()
-    appsDir := filepath.Join(tmpDir, "apps")
-    appDir := filepath.Join(appsDir, "docs")
-    require.NoError(t, os.MkdirAll(appDir, 0755))
-    require.NoError(t, os.WriteFile(filepath.Join(appDir, "index.html"), []byte("<h1>docs</h1>"), 0644))
+	tmpDir := t.TempDir()
+	appsDir := filepath.Join(tmpDir, "apps")
+	appDir := filepath.Join(appsDir, "docs")
+	require.NoError(t, os.MkdirAll(appDir, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(appDir, "index.html"), []byte("<h1>docs</h1>"), 0644))
 
-    confDir := filepath.Join(tmpDir, "caddy")
-    hostsPath := filepath.Join(tmpDir, "hosts")
-    require.NoError(t, os.WriteFile(hostsPath, []byte("127.0.0.1 localhost\n"), 0644))
+	confDir := filepath.Join(tmpDir, "caddy")
+	hostsPath := filepath.Join(tmpDir, "hosts")
+	require.NoError(t, os.WriteFile(hostsPath, []byte("127.0.0.1 localhost\n"), 0644))
 	hosts.SetHostsFile(hostsPath)
 	defer hosts.SetHostsFile("/etc/hosts")
 
-    caddy.SetConfDir(confDir)
-    defer caddy.SetConfDir("/etc/caddy/conf.d")
+	caddy.SetConfDir(confDir)
+	defer caddy.SetConfDir("/etc/caddy/conf.d")
 
-    originalConfigDir := config.ConfigDir
-    config.ConfigDir = filepath.Join(tmpDir, "config")
-    defer func() { config.ConfigDir = originalConfigDir }()
+	originalConfigDir := config.ConfigDir
+	config.ConfigDir = filepath.Join(tmpDir, "config")
+	defer func() { config.ConfigDir = originalConfigDir }()
 
-    cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{}}
+	cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{}}
 
-    err := Register(cfg, "docs", appDir, "", "", config.AppTypeStatic)
+	err := Register(cfg, "docs", appDir, "", "", config.AppTypeStatic)
 
-    assert.NoError(t, err)
-    assert.Equal(t, "docs.local", cfg.Apps["docs"].Alias)
-    assert.Equal(t, ".", cfg.Apps["docs"].OutputDir)
+	assert.NoError(t, err)
+	assert.Equal(t, "docs.local", cfg.Apps["docs"].Alias)
+	assert.Equal(t, ".", cfg.Apps["docs"].OutputDir)
 
-    sharedConfig, err := os.ReadFile(filepath.Join(confDir, "_shared.conf"))
-    require.NoError(t, err)
-    assert.Contains(t, string(sharedConfig), "handle_path /docs/*")
-    assert.Contains(t, string(sharedConfig), "file_server")
+	sharedConfig, err := os.ReadFile(filepath.Join(confDir, "_shared.conf"))
+	require.NoError(t, err)
+	assert.Contains(t, string(sharedConfig), "handle_path /docs/*")
+	assert.Contains(t, string(sharedConfig), "file_server")
 }
 
 func TestRegisterRejectsInvalidInputs(t *testing.T) {
-    tmpDir := t.TempDir()
-    cfg := &config.Config{AppsDir: tmpDir, Apps: map[string]*config.AppMeta{
-        "existing": {Name: "existing"},
-    }}
+	tmpDir := t.TempDir()
+	cfg := &config.Config{AppsDir: tmpDir, Apps: map[string]*config.AppMeta{
+		"existing": {Name: "existing"},
+	}}
 
-    err := Register(cfg, "existing", tmpDir, "", "", config.AppTypeStatic)
-    assert.Error(t, err)
-    assert.Contains(t, err.Error(), "already exists")
+	err := Register(cfg, "existing", tmpDir, "", "", config.AppTypeStatic)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "already exists")
 
-    err = Register(cfg, "missing", filepath.Join(tmpDir, "missing"), "", "", config.AppTypeStatic)
-    assert.Error(t, err)
-    assert.Contains(t, err.Error(), "does not exist")
+	err = Register(cfg, "missing", filepath.Join(tmpDir, "missing"), "", "", config.AppTypeStatic)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "does not exist")
 
-    filePath := filepath.Join(tmpDir, "file.txt")
-    require.NoError(t, os.WriteFile(filePath, []byte("x"), 0644))
-    err = Register(cfg, "file", filePath, "", "", config.AppTypeStatic)
-    assert.Error(t, err)
-    assert.Contains(t, err.Error(), "is not a directory")
+	filePath := filepath.Join(tmpDir, "file.txt")
+	require.NoError(t, os.WriteFile(filePath, []byte("x"), 0644))
+	err = Register(cfg, "file", filePath, "", "", config.AppTypeStatic)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "is not a directory")
 }
 
 func TestRemoveStaticAppDeletesManagedFilesAndMetadata(t *testing.T) {
-    tmpDir := t.TempDir()
-    appsDir := filepath.Join(tmpDir, "apps")
-    appDir := filepath.Join(appsDir, "site")
-    require.NoError(t, os.MkdirAll(appDir, 0755))
+	tmpDir := t.TempDir()
+	appsDir := filepath.Join(tmpDir, "apps")
+	appDir := filepath.Join(appsDir, "site")
+	require.NoError(t, os.MkdirAll(appDir, 0755))
 
-    confDir := filepath.Join(tmpDir, "caddy")
-    caddy.SetConfDir(confDir)
-    defer caddy.SetConfDir("/etc/caddy/conf.d")
-    require.NoError(t, os.MkdirAll(confDir, 0755))
-    require.NoError(t, os.WriteFile(filepath.Join(confDir, "site.conf"), []byte("site config"), 0644))
+	confDir := filepath.Join(tmpDir, "caddy")
+	caddy.SetConfDir(confDir)
+	defer caddy.SetConfDir("/etc/caddy/conf.d")
+	require.NoError(t, os.MkdirAll(confDir, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(confDir, "site.conf"), []byte("site config"), 0644))
 
-    hostsPath := filepath.Join(tmpDir, "hosts")
-    require.NoError(t, os.WriteFile(hostsPath, []byte("127.0.0.1 localhost\n127.0.0.1  site.local\n"), 0644))
+	hostsPath := filepath.Join(tmpDir, "hosts")
+	require.NoError(t, os.WriteFile(hostsPath, []byte("127.0.0.1 localhost\n127.0.0.1  site.local\n"), 0644))
 	hosts.SetHostsFile(hostsPath)
 	defer hosts.SetHostsFile("/etc/hosts")
 
-    originalConfigDir := config.ConfigDir
-    config.ConfigDir = filepath.Join(tmpDir, "config")
-    defer func() { config.ConfigDir = originalConfigDir }()
+	originalConfigDir := config.ConfigDir
+	config.ConfigDir = filepath.Join(tmpDir, "config")
+	defer func() { config.ConfigDir = originalConfigDir }()
 
-    cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{
-        "site": {Name: "site", Type: config.AppTypeStatic, Alias: "site.local"},
-    }}
+	cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{
+		"site": {Name: "site", Type: config.AppTypeStatic, Alias: "site.local"},
+	}}
 
-    err := Remove(cfg, "site")
+	err := Remove(cfg, "site")
 
-    assert.NoError(t, err)
-    assert.NotContains(t, cfg.Apps, "site")
-    _, err = os.Stat(appDir)
-    assert.True(t, os.IsNotExist(err))
+	assert.NoError(t, err)
+	assert.NotContains(t, cfg.Apps, "site")
+	_, err = os.Stat(appDir)
+	assert.True(t, os.IsNotExist(err))
 }
 
 func TestRemoveRejectsUnknownApp(t *testing.T) {
-    cfg := &config.Config{Apps: map[string]*config.AppMeta{}}
+	cfg := &config.Config{Apps: map[string]*config.AppMeta{}}
 
-    err := Remove(cfg, "missing")
+	err := Remove(cfg, "missing")
 
-    assert.Error(t, err)
-    assert.Contains(t, err.Error(), "not found")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not found")
 }
 
 func TestRemoveNodeAppDeletesAllManagedState(t *testing.T) {
-    tmpDir := t.TempDir()
-    appsDir := filepath.Join(tmpDir, "apps")
-    appDir := filepath.Join(appsDir, "api")
-    require.NoError(t, os.MkdirAll(appDir, 0755))
+	tmpDir := t.TempDir()
+	appsDir := filepath.Join(tmpDir, "apps")
+	appDir := filepath.Join(appsDir, "api")
+	require.NoError(t, os.MkdirAll(appDir, 0755))
 
-    confDir := filepath.Join(tmpDir, "caddy")
-    caddy.SetConfDir(confDir)
-    defer caddy.SetConfDir("/etc/caddy/conf.d")
-    require.NoError(t, os.MkdirAll(confDir, 0755))
-    require.NoError(t, os.WriteFile(filepath.Join(confDir, "api.conf"), []byte("api config"), 0644))
-    require.NoError(t, os.WriteFile(filepath.Join(confDir, "_shared.conf"), []byte("shared"), 0644))
+	confDir := filepath.Join(tmpDir, "caddy")
+	caddy.SetConfDir(confDir)
+	defer caddy.SetConfDir("/etc/caddy/conf.d")
+	require.NoError(t, os.MkdirAll(confDir, 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(confDir, "api.conf"), []byte("api config"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(confDir, "_shared.conf"), []byte("shared"), 0644))
 
-    hostsPath := filepath.Join(tmpDir, "hosts")
-    require.NoError(t, os.WriteFile(hostsPath, []byte("127.0.0.1 localhost\n127.0.0.1 api.local\n"), 0644))
-    hosts.SetHostsFile(hostsPath)
-    defer hosts.SetHostsFile("/etc/hosts")
+	hostsPath := filepath.Join(tmpDir, "hosts")
+	require.NoError(t, os.WriteFile(hostsPath, []byte("127.0.0.1 localhost\n127.0.0.1 api.local\n"), 0644))
+	hosts.SetHostsFile(hostsPath)
+	defer hosts.SetHostsFile("/etc/hosts")
 
-    originalConfigDir := config.ConfigDir
-    config.ConfigDir = filepath.Join(tmpDir, "config")
-    defer func() { config.ConfigDir = originalConfigDir }()
+	originalConfigDir := config.ConfigDir
+	config.ConfigDir = filepath.Join(tmpDir, "config")
+	defer func() { config.ConfigDir = originalConfigDir }()
 
-    calls := []string{}
+	calls := []string{}
 	stopApp = func(name string) error { calls = append(calls, "stop:"+name); return nil }
 	disableApp = func(name string) error { calls = append(calls, "disable:"+name); return nil }
 	removeService = func(name string) error { calls = append(calls, "service:"+name); return nil }
@@ -568,32 +568,33 @@ func TestRemoveNodeAppDeletesAllManagedState(t *testing.T) {
 	reloadCaddy = func() error { calls = append(calls, "caddy-reload"); return nil }
 	defer resetRemoveHooks()
 
-    cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{
-        "api": {Name: "api", Type: config.AppTypeNode, Alias: "api.local", Port: 3000},
-    }}
+	cfg := &config.Config{AppsDir: appsDir, Apps: map[string]*config.AppMeta{
+		"api": {Name: "api", Type: config.AppTypeNode, Alias: "api.local", Port: 3000},
+	}}
 
-    err := Remove(cfg, "api")
+	err := Remove(cfg, "api")
 
-    assert.NoError(t, err)
-    assert.NotContains(t, cfg.Apps, "api")
-    _, err = os.Stat(appDir)
-    assert.True(t, os.IsNotExist(err))
-    _, err = os.Stat(filepath.Join(confDir, "api.conf"))
-    assert.True(t, os.IsNotExist(err))
+	assert.NoError(t, err)
+	assert.NotContains(t, cfg.Apps, "api")
+	_, err = os.Stat(appDir)
+	assert.True(t, os.IsNotExist(err))
+	_, err = os.Stat(filepath.Join(confDir, "api.conf"))
+	assert.True(t, os.IsNotExist(err))
 	assert.Contains(t, calls, "stop:api")
 	assert.Contains(t, calls, "disable:api")
 	assert.Contains(t, calls, "service:api")
 	assert.Contains(t, calls, "daemon-reload")
 	assert.Contains(t, calls, "reset-failed:api")
+	assert.Contains(t, calls, "user:velo-api")
 	assert.Contains(t, calls, "user:deploy-api")
 	assert.Contains(t, calls, "caddy-reload")
 }
 
 func TestRemoveReportsCleanupErrors(t *testing.T) {
-    tmpDir := t.TempDir()
-    originalConfigDir := config.ConfigDir
-    config.ConfigDir = filepath.Join(tmpDir, "config")
-    defer func() { config.ConfigDir = originalConfigDir }()
+	tmpDir := t.TempDir()
+	originalConfigDir := config.ConfigDir
+	config.ConfigDir = filepath.Join(tmpDir, "config")
+	defer func() { config.ConfigDir = originalConfigDir }()
 
 	stopApp = func(name string) error { return assert.AnError }
 	disableApp = func(name string) error { return nil }
@@ -607,14 +608,14 @@ func TestRemoveReportsCleanupErrors(t *testing.T) {
 	reloadCaddy = func() error { return nil }
 	defer resetRemoveHooks()
 
-    cfg := &config.Config{AppsDir: filepath.Join(tmpDir, "apps"), Apps: map[string]*config.AppMeta{
-        "api": {Name: "api", Type: config.AppTypeNode},
-    }}
+	cfg := &config.Config{AppsDir: filepath.Join(tmpDir, "apps"), Apps: map[string]*config.AppMeta{
+		"api": {Name: "api", Type: config.AppTypeNode},
+	}}
 
-    err := Remove(cfg, "api")
+	err := Remove(cfg, "api")
 
-    assert.Error(t, err)
-    assert.Contains(t, err.Error(), "failed to fully remove app 'api'")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to fully remove app 'api'")
 	assert.Contains(t, err.Error(), "stop systemd service")
 }
 
@@ -667,6 +668,3 @@ func resetRemoveHooks() {
 	removeHostAlias = hosts.RemoveAlias
 	removeManagedFiles = os.RemoveAll
 }
-
-
-
